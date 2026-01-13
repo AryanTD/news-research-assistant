@@ -2,6 +2,7 @@ require("dotenv").config();
 const Anthropic = require("@anthropic-ai/sdk");
 const { searchNews } = require("./newsService");
 const { calculate } = require("./calculatorService");
+const { getWeather } = require("./weatherService");
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
@@ -40,6 +41,22 @@ const tools = [
       required: ["expression"],
     },
   },
+  {
+    name: "getWeather",
+    description:
+      "Get the current weather for a specific location. Use this tool when the user asks about weather conditions in a city or region.",
+    input_schema: {
+      type: "object",
+      properties: {
+        location: {
+          type: "string",
+          description:
+            "The name of the city or location to get the weather for.",
+        },
+      },
+      required: ["location"],
+    },
+  },
 ];
 
 async function askClaude(conversationHistory) {
@@ -76,6 +93,11 @@ async function askClaude(conversationHistory) {
       const calculation = await calculate(toolUse.input.expression);
       console.log(`✅ Calculation result: ${calculation}\n`);
       toolResult = JSON.stringify(calculation);
+    } else if (toolUse.name === "getWeather") {
+      console.log("🌤️ Fetching weather...\n");
+      const weather = await getWeather(toolUse.input.location);
+      console.log(`✅ Weather fetched: ${JSON.stringify(weather)}\n`);
+      toolResult = JSON.stringify(weather);
     }
 
     messages.push({
