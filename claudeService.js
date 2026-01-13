@@ -25,10 +25,10 @@ const tools = [
   },
 ];
 
-async function askClaude(userMessage) {
-  console.log("Asking Claude:", userMessage);
+async function askClaude(conversationHistory) {
+  console.log("Asking Claude:", conversationHistory.length, "messages");
 
-  let messages = [{ role: "user", content: userMessage }];
+  let messages = [...conversationHistory];
 
   const firstResponse = await anthropic.messages.create({
     model: "claude-sonnet-4-20250514",
@@ -75,10 +75,16 @@ async function askClaude(userMessage) {
       messages: messages,
     });
     console.log("✅ Final response received!\n");
-    return finalResponse.content[0].text;
+    const textContent = finalResponse.content.find(
+      (block) => block.type === "text"
+    );
+    return textContent ? textContent.text : "I couldn't generate a response.";
   }
 
-  return firstResponse.content[0].text;
+  const textContent = finalResponse.content.find(
+    (block) => block.type === "text"
+  );
+  return textContent ? textContent.text : "I couldn't generate a response.";
 }
 
 module.exports = { askClaude };

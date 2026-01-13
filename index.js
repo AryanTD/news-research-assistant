@@ -20,13 +20,24 @@ function chat() {
       return;
     }
 
+    if (userInput.toLowerCase() === "clear") {
+      conversationHistory = [];
+      console.log("Conversation history cleared.\n");
+      chat();
+      return;
+    }
+
     if (!userInput.trim()) {
       chat();
       return;
     }
 
     try {
-      const response = await askClaude(userInput);
+      conversationHistory.push({ role: "user", content: userInput });
+
+      const response = await askClaude(conversationHistory);
+
+      conversationHistory.push({ role: "assistant", content: response });
 
       console.log(`\nAssistant: ${response}\n`);
 
