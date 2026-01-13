@@ -1,6 +1,7 @@
 require("dotenv").config();
 const Anthropic = require("@anthropic-ai/sdk");
 const { searchNews } = require("./newsService");
+const { calculate } = require("./calculatorService");
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
@@ -21,6 +22,22 @@ const tools = [
         },
       },
       required: ["query"],
+    },
+  },
+  {
+    name: "calculate",
+    description:
+      "Perform basic arithmetic calculations. Use this tool when the user asks for mathematical computations.",
+    input_schema: {
+      type: "object",
+      properties: {
+        expression: {
+          type: "string",
+          description:
+            "The mathematical expression to evaluate. Examples: '15% of 87.50', '25 * 4 + 10', '32 fahrenheit to celsius', 'sqrt(144)'",
+        },
+      },
+      required: ["expression"],
     },
   },
 ];
@@ -47,9 +64,19 @@ async function askClaude(conversationHistory) {
     console.log("Tool requested:", toolUse.name);
     console.log("Tool input:", toolUse.input);
 
-    console.log("\n📰 Fetching news...\n");
-    const newsResults = await searchNews(toolUse.input.query);
-    console.log(`✅ Found ${newsResults.length} articles\n`);
+    let toolResult;
+
+    if (toolUse.name === "searchNews") {
+      console.log("📰 Fetching news...\n");
+      const newsResults = await searchNews(toolUse.input.query);
+      console.log(`✅ Found ${newsResults.length} articles\n`);
+      toolResult = JSON.stringify(newsResults);
+    } else if (toolUse.name === "calculate") {
+      console.log("🧮 Calculating expression...\n");
+      const calculation = await calculate(toolUse.input.expression);
+      console.log(`✅ Calculation result: ${calculation}\n`);
+      toolResult = JSON.stringify(calculation);
+    }
 
     messages.push({
       role: `assistant`,
@@ -62,7 +89,7 @@ async function askClaude(conversationHistory) {
         {
           type: "tool_result",
           tool_use_id: toolUse.id,
-          content: JSON.stringify(newsResults),
+          content: JSON.stringify(toolResult),
         },
       ],
     });
