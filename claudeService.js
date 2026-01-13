@@ -3,6 +3,7 @@ const Anthropic = require("@anthropic-ai/sdk");
 const { searchNews } = require("./newsService");
 const { calculate } = require("./calculatorService");
 const { getWeather } = require("./weatherService");
+const { searchWikipedia } = require("./wikipediaService");
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
@@ -57,6 +58,21 @@ const tools = [
       required: ["location"],
     },
   },
+  {
+    name: "searchWikipedia",
+    description:
+      "Search for information on Wikipedia about a specific topic. Use this tool when the user asks for general knowledge or information about a subject.",
+    input_schema: {
+      type: "object",
+      properties: {
+        query: {
+          type: "string",
+          description: "The search query or topic to look for in Wikipedia.",
+        },
+      },
+      required: ["query"],
+    },
+  },
 ];
 
 async function askClaude(conversationHistory) {
@@ -98,6 +114,11 @@ async function askClaude(conversationHistory) {
       const weather = await getWeather(toolUse.input.location);
       console.log(`✅ Weather fetched: ${JSON.stringify(weather)}\n`);
       toolResult = JSON.stringify(weather);
+    } else if (toolUse.name === "searchWikipedia") {
+      console.log("📚 Searching Wikipedia...\n");
+      const wikiResult = await searchWikipedia(toolUse.input.query);
+      console.log(`✅ Wikipedia result: ${JSON.stringify(wikiResult)}\n`);
+      toolResult = JSON.stringify(wikiResult);
     }
 
     messages.push({
@@ -111,7 +132,7 @@ async function askClaude(conversationHistory) {
         {
           type: "tool_result",
           tool_use_id: toolUse.id,
-          content: JSON.stringify(toolResult),
+          content: toolResult,
         },
       ],
     });
