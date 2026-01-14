@@ -1,4 +1,4 @@
-const { askClaude } = require("./claudeService");
+const { askClaude } = require("../services/claudeService");
 
 async function test() {
   // Test 1: Simple math (shouldn't use tools)

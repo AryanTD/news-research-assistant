@@ -1,5 +1,5 @@
 require("dotenv").config();
-const { searchNews } = require("./newsService");
+const { searchNews } = require("../services/newsService");
 
 async function test() {
   console.log("Testing searchNews function...\n");

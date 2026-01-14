@@ -1,20 +1,33 @@
 {
   "name": "news-research-assistant",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "AI-powered news research assistant with Claude",
+  "main": "backend/server.js",
   "scripts": {
+    "cli": "node backend/cli.js",
+    "server": "node backend/server.js",
+    "dev": "nodemon backend/server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "ai",
+    "news",
+    "claude",
+    "research"
+  ],
+  "author": "Aryan Tandon",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
     "@anthropic-ai/sdk": "^0.71.2",
     "axios": "^1.13.2",
+    "cors": "^2.8.5",
     "dotenv": "^17.2.3",
+    "express": "^4.18.2",
     "mathjs": "^15.1.0",
     "wikipedia": "^2.4.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
   }
 }

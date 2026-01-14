@@ -1,5 +1,5 @@
 const readline = require("readline");
-const { askClaude } = require("./claudeService");
+const { askClaude } = require("./services/claudeService");
 
 const rl = readline.createInterface({
   input: process.stdin,
