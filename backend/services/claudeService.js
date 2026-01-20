@@ -1,4 +1,5 @@
-require("dotenv").config();
+const path = require("path");
+require("dotenv").config({ path: path.join(__dirname, "../.env") });
 const Anthropic = require("@anthropic-ai/sdk");
 const { searchNews } = require("./newsService");
 const { calculate } = require("./calculatorService");
@@ -6,6 +7,7 @@ const { getWeather } = require("./weatherService");
 const { searchWikipedia } = require("./wikipediaService");
 const { searchWeb } = require("./search");
 const { scrapeWebpage } = require("./scraper");
+const documentService = require("./documentService");
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
@@ -113,7 +115,55 @@ const tools = [
       required: ["url"],
     },
   },
+  {
+    name: "readDocument",
+    description:
+      "Read and process a document from a URL. Supports PDF and plain text files (.pdf, .txt). The document will be downloaded, text extracted, split into searchable chunks, and stored for later querying. Use this when the user provides a URL to a document they want analyzed, or asks you to 'read' or 'process' a document.",
+    input_schema: {
+      type: "object",
+      properties: {
+        url: {
+          type: "string",
+          description:
+            "The URL of the document to read. Must be a direct link to a .pdf or .txt file (e.g., 'https://example.com/paper.pdf' or 'https://gutenberg.org/files/11/11-0.txt')",
+        },
+      },
+      required: ["url"],
+    },
+  },
+  {
+    name: "searchDocument",
+    description:
+      "Search through previously read documents for content matching a query. Returns relevant text chunks from stored documents. Use this when the user asks questions about documents they've already uploaded/read, or when they want to find specific information within their documents. This performs keyword-based search (exact word matching).",
+    input_schema: {
+      type: "object",
+      properties: {
+        query: {
+          type: "string",
+          description:
+            "The search query - keywords or phrases to look for in the documents. Keep it simple and focused (e.g., 'climate change', 'neural networks', 'Alice rabbit hole')",
+        },
+        documentId: {
+          type: "string",
+          description:
+            "Optional: specific document ID to search within (e.g., 'doc_1234567890'). If not provided, searches across all stored documents.",
+        },
+      },
+      required: ["query"],
+    },
+  },
+  {
+    name: "listDocuments",
+    description:
+      "List all documents that have been read and stored. Shows document metadata including URL, upload time, file type, page count (for PDFs), text length, and number of chunks. Use this when the user asks 'what documents do I have?', 'show my documents', or wants to see what's been uploaded.",
+    input_schema: {
+      type: "object",
+      properties: {},
+      required: [],
+    },
+  },
 ];
+
 async function askClaude(conversationHistory) {
   console.log("Asking Claude:", conversationHistory.length, "messages");
 
@@ -189,6 +239,68 @@ async function askClaude(conversationHistory) {
               error: true,
               message: error.message,
               url: toolUse.input.url,
+            });
+          }
+        } else if (toolUse.name === "readDocument") {
+          console.log("📄 Reading document...\n");
+          const result = await documentService.readDocument(toolUse.input.url);
+          if (result.success) {
+            console.log(
+              `✅ Document read successfully: ${result.documentId} with ${result.chunkCount} chunks\n`
+            );
+          } else {
+            console.log(`❌ Document read failed: ${result.error}\n`);
+          }
+          toolResult = JSON.stringify(result);
+        } else if (toolUse.name === "searchDocument") {
+          console.log("🔎 Searching documents...\n");
+          try {
+            const results = await documentService.searchChunks(
+              toolUse.input.query,
+              toolUse.input.documentId || null
+            );
+            console.log(`✅ Found ${results.length} matching chunks\n`);
+            toolResult = JSON.stringify({
+              success: true,
+              query: toolUse.input.query,
+              resultsCount: results.length,
+              results: results.map((chunk) => ({
+                documentId: chunk.documentId,
+                chunkIndex: chunk.chunkIndex,
+                startIndex: chunk.startIndex,
+                endIndex: chunk.endIndex,
+              })),
+            });
+          } catch (error) {
+            console.log(`❌ Document search failed: ${error.message}\n`);
+            toolResult = JSON.stringify({
+              success: false,
+              message: error.message,
+            });
+          }
+        } else if (toolUse.name === "listDocuments") {
+          console.log("📋 Listing documents...\n");
+          try {
+            const documents = await documentService.listDocuments();
+            console.log(`✅ Found ${documents.length} documents\n`);
+            toolResult = JSON.stringify({
+              success: true,
+              count: documents.length,
+              documents: documents.map((doc) => ({
+                id: doc.id,
+                url: doc.url,
+                uploadedAt: doc.timestamp,
+                fileType: doc.fileType,
+                pages: doc.pages,
+                textLength: doc.textLength,
+                chunkCount: doc.chunkCount,
+              })),
+            });
+          } catch (error) {
+            console.log(`❌ Failed to list documents: ${error.message}\n`);
+            toolResult = JSON.stringify({
+              success: false,
+              error: error.message,
             });
           }
         }

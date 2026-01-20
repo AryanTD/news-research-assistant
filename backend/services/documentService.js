@@ -49,7 +49,7 @@ class DocumentService {
     }
   }
   async extractTextFromBuffer(buffer) {
-    return buffer.toSString("utf-8");
+    return buffer.toString("utf-8");
   }
 
   getFileType(url, buffer) {
