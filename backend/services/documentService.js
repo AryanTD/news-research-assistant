@@ -1,7 +1,8 @@
 const fs = require("fs").promises;
 const path = require("path");
 const axios = require("axios");
-const pdfParse = require("pdf-parse");
+const pdfParse = require("pdf-parse").default || require("pdf-parse");
+const chromaService = require("./chromaService");
 
 class DocumentService {
   constructor() {
@@ -119,10 +120,31 @@ class DocumentService {
       path.join(this.chunksDir, `${documentId}_chunks.json`),
       JSON.stringify(chunksData, null, 2)
     );
+
+    //================
+    // NEW: Vector Storage in ChromaDB
+    //================
+
+    let vectorStored = false;
+    let vectorError = null;
+
+    try {
+      console.log("Indexing chunks for semantic search...");
+
+      await chromaService.addChunks(chunks, documentId);
+
+      vectorStored = true;
+      console.log("✓ Chunks indexed successfully in ChromaDB");
+    } catch (error) {
+      vectorError = error.message;
+      console.error("✗ Failed to index chunks in ChromaDB:", vectorError);
+    }
     return {
       documentId,
       chunkCount: chunks.length,
       textLength: text.length,
+      vectorStored,
+      vectorError,
     };
   }
 
@@ -216,6 +238,76 @@ class DocumentService {
       return documents;
     } catch (error) {
       throw new Error(`Failed to list documents: ${error.message}`);
+    }
+  }
+  /**
+   * Re-index an existing document in ChromaDB
+   * Useful if vector storage failed during initial processing
+   */
+  async reindexDocument(documentId) {
+    try {
+      // Load chunks from file system
+      const chunksPath = path.join(this.chunksDir, `${documentId}_chunks.json`);
+      const chunksContent = await fs.readFile(chunksPath, "utf-8");
+      const chunks = JSON.parse(chunksContent);
+
+      // Delete old vectors if they exist
+      try {
+        await chromaService.deleteDocument(documentId);
+        console.log(`🗑️  Cleared old vectors for ${documentId}`);
+      } catch (error) {
+        // No old vectors to delete, that's fine
+      }
+
+      // Add chunks to ChromaDB
+      console.log(`📊 Re-indexing ${chunks.length} chunks...`);
+      await chromaService.addChunks(chunks, documentId);
+      console.log(`✅ Re-indexing complete`);
+
+      return {
+        success: true,
+        documentId,
+        chunksIndexed: chunks.length,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message,
+      };
+    }
+  }
+  /**
+   * Semantic search across documents using vector similarity
+   * Falls back to keyword search if ChromaDB is unavailable
+   */
+  async semanticSearch(query, nResults = 5, documentId = null) {
+    try {
+      // Try semantic search with ChromaDB
+      const results = await chromaService.searchSimilar(
+        query,
+        nResults,
+        documentId
+      );
+
+      return {
+        method: "semantic",
+        results,
+        total: results.length,
+      };
+    } catch (error) {
+      console.warn(
+        `⚠️  Semantic search failed, falling back to keyword search: ${error.message}`
+      );
+
+      // Fallback to keyword search
+      const keywordResults = await this.searchChunks(query, documentId);
+
+      return {
+        method: "keyword_fallback",
+        results: keywordResults,
+        total: keywordResults.length,
+        fallbackReason: error.message,
+      };
     }
   }
 }
