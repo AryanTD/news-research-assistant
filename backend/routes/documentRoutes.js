@@ -60,4 +60,38 @@ router.post("/upload", upload.single("document"), async (req, res) => {
   }
 });
 
+// GET /api/documents - List all uploaded documents
+router.get("/", async (req, res) => {
+  try {
+    console.log("📚 Fetching all documents...");
+
+    // Get all documents from documentService
+    const documents = await documentService.listDocuments();
+
+    // Send success response
+    res.status(200).json({
+      success: true,
+      data: {
+        documents: documents,
+        total: documents.length,
+      },
+      message: `Found ${documents.length} document(s)`,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error("❌ List documents error:", error);
+
+    res.status(500).json({
+      success: false,
+      error: {
+        code: "LIST_FAILED",
+        message: error.message,
+        details:
+          process.env.NODE_ENV === "development" ? error.stack : undefined,
+      },
+      timestamp: new Date().toISOString(),
+    });
+  }
+});
+
 module.exports = router;
