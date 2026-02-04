@@ -3,6 +3,7 @@ const cors = require("cors");
 const path = require("path");
 require("dotenv").config();
 const { askClaude } = require("./services/claudeService");
+const documentRoutes = require("./routes/documentRoutes");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -13,12 +14,15 @@ app.use(express.json());
 app.use((req, res, next) => {
   res.setHeader(
     "Content-Security-Policy",
-    "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' http://localhost:3000"
+    "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' http://localhost:3000",
   );
   next();
 });
 
 app.use(express.static(path.join(__dirname, "../frontend")));
+
+// API Routes
+app.use("/api/documents", documentRoutes);
 
 const conversations = new Map();
 

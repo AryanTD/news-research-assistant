@@ -1,7 +1,7 @@
 const fs = require("fs").promises;
 const path = require("path");
 const axios = require("axios");
-const pdfParse = require("pdf-parse").default || require("pdf-parse");
+const pdfParse = require("pdf-parse");
 const chromaService = require("./chromaService");
 
 class DocumentService {
@@ -49,8 +49,102 @@ class DocumentService {
       throw new Error(`Failed to extract text from PDF: ${error.message}`);
     }
   }
+  
   async extractTextFromBuffer(buffer) {
     return buffer.toString("utf-8");
+  }
+
+  /**
+   * Process a locally uploaded document file
+   * @param {string} filePath - Path to the uploaded file on disk
+   * @returns {Object} Processing result with document metadata
+   */
+
+  async processDocument(filePath) {
+    try {
+      // Read the file from disk
+      const buffer = await fs.readFile(filePath);
+
+      // Determine file type from path
+      const ext = path.extname(filePath).toLowerCase();
+      let fileType = ext === ".pdf" ? "pdf" : "txt"; // ← Changed const to let
+
+      let text;
+      let metadata = {
+        fileType: fileType, // ← Use the variable
+        originalPath: filePath,
+        filename: path.basename(filePath),
+      };
+
+      // Extract text based on file type
+      if (fileType === "pdf") {
+        const pdfData = await this.extractPdfText(buffer);
+        text = pdfData.text;
+        metadata.pages = pdfData.pages;
+        metadata.pdfInfo = pdfData.info;
+      } else {
+        text = await this.extractTextFromBuffer(buffer);
+      }
+
+      // Create chunks
+      const chunks = this.chunkText(text);
+
+      // Generate document ID
+      const timestamp = Date.now();
+      const documentId = `doc_${timestamp}`;
+
+      // Save document metadata
+      const documentData = {
+        id: documentId,
+        filePath: filePath,
+        filename: path.basename(filePath),
+        timestamp: new Date(timestamp).toISOString(),
+        textLength: text.length,
+        chunkCount: chunks.length,
+        ...metadata,
+      };
+
+      await fs.writeFile(
+        path.join(this.storageDir, `${documentId}.json`),
+        JSON.stringify(documentData, null, 2),
+      );
+
+      // Save chunks to disk
+      const chunksData = chunks.map((chunk, index) => ({
+        documentId,
+        chunkIndex: index,
+        ...chunk,
+      }));
+
+      await fs.writeFile(
+        path.join(this.chunksDir, `${documentId}_chunks.json`),
+        JSON.stringify(chunksData, null, 2),
+      );
+
+      // Index in ChromaDB
+      let vectorStored = false;
+      let vectorError = null;
+
+      try {
+        console.log(`📊 Indexing ${chunks.length} chunks in ChromaDB...`);
+        await chromaService.addChunks(chunks, documentId);
+        vectorStored = true;
+        console.log("✅ Chunks indexed successfully in ChromaDB");
+      } catch (error) {
+        vectorError = error.message;
+        console.error("❌ Failed to index chunks in ChromaDB:", vectorError);
+      }
+
+      return {
+        id: documentId,
+        chunks: chunksData,
+        metadata: documentData,
+        vectorStored,
+        vectorError,
+      };
+    } catch (error) {
+      throw new Error(`Failed to process document: ${error.message}`);
+    }
   }
 
   getFileType(url, buffer) {
@@ -107,7 +201,7 @@ class DocumentService {
 
     await fs.writeFile(
       path.join(this.storageDir, `${documentId}.json`),
-      JSON.stringify(documentData, null, 2)
+      JSON.stringify(documentData, null, 2),
     );
 
     const chunksData = chunks.map((chunk, index) => ({
@@ -118,7 +212,7 @@ class DocumentService {
 
     await fs.writeFile(
       path.join(this.chunksDir, `${documentId}_chunks.json`),
-      JSON.stringify(chunksData, null, 2)
+      JSON.stringify(chunksData, null, 2),
     );
 
     //================
@@ -201,7 +295,7 @@ class DocumentService {
 
         const fileContent = await fs.readFile(
           path.join(this.chunksDir, file),
-          "utf-8"
+          "utf-8",
         );
         const fileChunks = JSON.parse(fileContent);
         chunks.push(...fileChunks);
@@ -210,7 +304,7 @@ class DocumentService {
       // Simple keyword search (we'll improve this with vector search later)
       const queryLower = query.toLowerCase();
       const results = chunks.filter((chunk) =>
-        chunk.text.toLowerCase().includes(queryLower)
+        chunk.text.toLowerCase().includes(queryLower),
       );
 
       return results.slice(0, 5); // Return top 5 matches
@@ -230,7 +324,7 @@ class DocumentService {
 
         const content = await fs.readFile(
           path.join(this.storageDir, file),
-          "utf-8"
+          "utf-8",
         );
         documents.push(JSON.parse(content));
       }
@@ -286,7 +380,7 @@ class DocumentService {
       const results = await chromaService.searchSimilar(
         query,
         nResults,
-        documentId
+        documentId,
       );
 
       return {
@@ -296,7 +390,7 @@ class DocumentService {
       };
     } catch (error) {
       console.warn(
-        `⚠️  Semantic search failed, falling back to keyword search: ${error.message}`
+        `⚠️  Semantic search failed, falling back to keyword search: ${error.message}`,
       );
 
       // Fallback to keyword search
