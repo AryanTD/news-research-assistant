@@ -4,6 +4,7 @@ const path = require("path");
 require("dotenv").config();
 const { askClaude } = require("./services/claudeService");
 const documentRoutes = require("./routes/documentRoutes");
+const searchRoutes = require("./routes/searchRoutes");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -23,6 +24,7 @@ app.use(express.static(path.join(__dirname, "../frontend")));
 
 // API Routes
 app.use("/api/documents", documentRoutes);
+app.use("/api/search", searchRoutes);
 
 const conversations = new Map();
 
