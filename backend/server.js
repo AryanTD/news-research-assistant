@@ -6,6 +6,7 @@ const { askClaude } = require("./services/claudeService");
 const documentRoutes = require("./routes/documentRoutes");
 const searchRoutes = require("./routes/searchRoutes");
 const systemRoutes = require("./routes/systemRoutes");
+const newsRoutes = require("./routes/newsRoutes");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -27,6 +28,7 @@ app.use(express.static(path.join(__dirname, "../frontend")));
 app.use("/api/documents", documentRoutes);
 app.use("/api/search", searchRoutes);
 app.use("/api", systemRoutes);
+app.use("/api/news", newsRoutes);
 
 const conversations = new Map();
 
