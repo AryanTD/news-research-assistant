@@ -1,0 +1,75 @@
+@import "tailwindcss";
+
+/* Spotify-inspired theme using Tailwind v4 @theme */
+@theme {
+  --color-spotify-black: #000000;
+  --color-spotify-base: #121212;
+  --color-spotify-elevated: #1a1a1a;
+  --color-spotify-highlight: #242424;
+  --color-spotify-press: #181818;
+
+  --color-accent-red: #ef4444;
+  --color-accent-red-dim: #dc2626;
+  --color-accent-red-dark: #b91c1c;
+
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #b3b3b3;
+  --color-text-muted: #6b7280;
+
+  --color-border-subtle: #282828;
+
+  --font-family-sans: "Inter", system-ui, -apple-system, sans-serif;
+}
+
+/* Global styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-family-sans);
+  background-color: var(--color-spotify-black);
+  color: var(--color-text-primary);
+  overflow-x: hidden;
+}
+
+/* Custom scrollbar (Spotify style) */
+::-webkit-scrollbar {
+  width: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-spotify-base);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border-subtle);
+  border-radius: 6px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #3e3e3e;
+}
+
+/* Smooth transitions */
+* {
+  transition:
+    background-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+/* Remove default button/input styles */
+button,
+input {
+  border: none;
+  outline: none;
+  font-family: inherit;
+}
+
+/* Links */
+a {
+  text-decoration: none;
+  color: inherit;
+}
