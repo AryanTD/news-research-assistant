@@ -2,6 +2,7 @@ import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import MainLayout from "./components/layout/MainLayout";
 import HomePage from "./pages/HomePage";
+import NewsPage from "./pages/NewsPage";
 
 function App() {
   return (
@@ -9,14 +10,7 @@ function App() {
       <MainLayout>
         <Routes>
           <Route path="/" element={<HomePage />} />
-          <Route
-            path="/news"
-            element={
-              <div className="p-8">
-                <h1 className="text-2xl text-white">News Page (Coming Soon)</h1>
-              </div>
-            }
-          />
+          <Route path="/news" element={<NewsPage />} />
           <Route
             path="/library"
             element={
