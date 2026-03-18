@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useSearchParams, Link } from "react-router-dom";
-import { ArrowLeft, Sparkles, ExternalLink } from "lucide-react";
+import { ArrowLeft, Sparkles, ExternalLink, LayoutGrid, List } from "lucide-react";
 import { newsAPI } from "../services/api";
 import SearchBar from "../components/common/SearchBar";
 
@@ -12,6 +12,7 @@ const NewsPage = () => {
   const [keywords, setKeywords] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [viewMode, setViewMode] = useState("grid"); // "grid" | "list"
 
   useEffect(() => {
     if (query) {
@@ -120,8 +121,8 @@ const NewsPage = () => {
         }}
       >
         {/* Results Header */}
-        {query && (
-          <div style={{ marginBottom: "32px" }}>
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "32px" }}>
+          <div>
             <h1
               style={{
                 fontSize: "32px",
@@ -147,7 +148,43 @@ const NewsPage = () => {
               </p>
             )}
           </div>
-        )}
+
+          {/* View Toggle */}
+          {!loading && articles.length > 0 && (
+            <div style={{ display: "flex", gap: "8px", paddingTop: "8px" }}>
+              <button
+                onClick={() => setViewMode("grid")}
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  cursor: "pointer",
+                  color: viewMode === "grid" ? "#ef4444" : "#6b7280",
+                  padding: "4px",
+                  display: "flex",
+                  alignItems: "center",
+                }}
+                title="Grid view"
+              >
+                <LayoutGrid size={20} />
+              </button>
+              <button
+                onClick={() => setViewMode("list")}
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  cursor: "pointer",
+                  color: viewMode === "list" ? "#ef4444" : "#6b7280",
+                  padding: "4px",
+                  display: "flex",
+                  alignItems: "center",
+                }}
+                title="List view"
+              >
+                <List size={20} />
+              </button>
+            </div>
+          )}
+        </div>
 
         {/* Loading State */}
         {loading && (
@@ -191,19 +228,27 @@ const NewsPage = () => {
           </div>
         )}
 
-        {/* Articles Grid */}
+        {/* Articles Grid / List */}
         {!loading && !error && articles.length > 0 && (
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(350px, 1fr))",
-              gap: "24px",
-            }}
-          >
-            {articles.map((article, index) => (
-              <ArticleCard key={index} article={article} />
-            ))}
-          </div>
+          viewMode === "grid" ? (
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fill, minmax(350px, 1fr))",
+                gap: "24px",
+              }}
+            >
+              {articles.map((article, index) => (
+                <ArticleCard key={index} article={article} />
+              ))}
+            </div>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+              {articles.map((article, index) => (
+                <ArticleRow key={index} article={article} />
+              ))}
+            </div>
+          )
         )}
 
         {/* No Results */}
@@ -260,23 +305,8 @@ const ArticleCard = ({ article }) => {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Image Placeholder */}
-      <div
-        style={{
-          width: "100%",
-          height: "200px",
-          background: "linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          fontSize: "48px",
-        }}
-      >
-        📰
-      </div>
-
       {/* Content */}
-      <div style={{ padding: "20px" }}>
+      <div style={{ padding: "16px" }}>
         {/* Source & Time */}
         <div
           style={{
@@ -329,7 +359,7 @@ const ArticleCard = ({ article }) => {
             lineHeight: "1.6",
             marginBottom: "16px",
             display: "-webkit-box",
-            WebkitLineClamp: 3,
+            WebkitLineClamp: 2,
             WebkitBoxOrient: "vertical",
             overflow: "hidden",
           }}
@@ -405,6 +435,118 @@ const ArticleCard = ({ article }) => {
             AI
           </button>
         </div>
+      </div>
+    </div>
+  );
+};
+
+// Article Row Component (list view)
+const ArticleRow = ({ article }) => {
+  const [isHovered, setIsHovered] = useState(false);
+
+  return (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: "16px",
+        padding: "12px 16px",
+        backgroundColor: isHovered ? "#1a1a1a" : "transparent",
+        border: "1px solid",
+        borderColor: isHovered ? "#282828" : "transparent",
+        borderRadius: "8px",
+        transition: "all 0.15s ease",
+        cursor: "default",
+      }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      {/* Source */}
+      <div
+        style={{
+          width: "120px",
+          flexShrink: 0,
+          fontSize: "11px",
+          color: "#ef4444",
+          fontWeight: 600,
+          textTransform: "uppercase",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          whiteSpace: "nowrap",
+        }}
+      >
+        {article.source || "News"}
+      </div>
+
+      {/* Title */}
+      <div
+        style={{
+          flex: 1,
+          fontSize: "14px",
+          fontWeight: "bold",
+          color: "#ffffff",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          whiteSpace: "nowrap",
+        }}
+      >
+        {article.title || "Untitled"}
+      </div>
+
+      {/* Date */}
+      <div
+        style={{
+          width: "90px",
+          flexShrink: 0,
+          fontSize: "12px",
+          color: "#6b7280",
+          textAlign: "right",
+        }}
+      >
+        {article.publishedAt
+          ? new Date(article.publishedAt).toLocaleDateString()
+          : "Recent"}
+      </div>
+
+      {/* Action Buttons */}
+      <div style={{ display: "flex", gap: "8px", flexShrink: 0 }}>
+        <button
+          title="Read Article"
+          onClick={() => article.url && window.open(article.url, "_blank")}
+          style={{
+            padding: "6px",
+            backgroundColor: "#ef4444",
+            color: "#ffffff",
+            border: "none",
+            borderRadius: "6px",
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "#dc2626"; }}
+          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "#ef4444"; }}
+        >
+          <ExternalLink size={14} />
+        </button>
+        <button
+          title="AI Summary"
+          style={{
+            padding: "6px",
+            backgroundColor: "#242424",
+            color: "#b3b3b3",
+            border: "1px solid #282828",
+            borderRadius: "6px",
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.borderColor = "#ef4444"; }}
+          onMouseLeave={(e) => { e.currentTarget.style.borderColor = "#282828"; }}
+        >
+          <Sparkles size={14} />
+        </button>
       </div>
     </div>
   );
