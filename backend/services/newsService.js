@@ -10,9 +10,10 @@ async function searchNews(query) {
       params: {
         q: query,
         apiKey: apiKey,
-        pageSize: 3,
+        pageSize: 6,
         language: "en",
-        sortby: "publishedAt",
+        sortby: "relevency",
+        searchIn: "title,description",
       },
     });
 
@@ -20,7 +21,7 @@ async function searchNews(query) {
   } catch (error) {
     if (error.code === "ENOTFOUND" || error.code === "ECONNREFUSED") {
       throw new Error(
-        "Cannot connect to news service. Check your internet connection."
+        "Cannot connect to news service. Check your internet connection.",
       );
     } else if (error.response?.status === 429) {
       throw new Error("News API rate limit reached. Please try again later.");

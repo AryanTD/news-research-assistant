@@ -15,8 +15,27 @@ const NewsPage = () => {
   useEffect(() => {
     if (query) {
       searchNews(query);
+    } else {
+      fetchTrending();
     }
   }, [query]);
+
+  const fetchTrending = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await newsAPI.trending();
+      if (response.success) {
+        setArticles(response.data.articles || []);
+      } else {
+        setError("Failed to fetch trending news");
+      }
+    } catch (err) {
+      setError(err.message || "Something went wrong");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const searchNews = async (searchQuery) => {
     setLoading(true);
@@ -109,12 +128,13 @@ const NewsPage = () => {
                 marginBottom: "8px",
               }}
             >
-              Results for "{query}"
+              {query ? `Results for "${query}"` : "Trending Now 🔥"}
             </h1>
             {!loading && (
               <p style={{ fontSize: "16px", color: "#b3b3b3" }}>
-                Found {articles.length} article
-                {articles.length !== 1 ? "s" : ""}
+                {query
+                  ? `Found ${articles.length} article${articles.length !== 1 ? "s" : ""}`
+                  : "Top headlines right now"}
               </p>
             )}
           </div>

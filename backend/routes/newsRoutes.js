@@ -57,4 +57,46 @@ router.post("/search", async (req, res) => {
   }
 });
 
+// GET /api/news/trending - Get top headlines
+router.get("/trending", async (req, res) => {
+  try {
+    console.log("🔥 Fetching trending news");
+
+    const apiKey = process.env.NEWS_API_KEY;
+    const axios = require("axios");
+
+    const response = await axios.get("https://newsapi.org/v2/top-headlines", {
+      params: {
+        country: "us",
+        pageSize: 10,
+        apiKey: apiKey,
+      },
+    });
+
+    res.status(200).json({
+      success: true,
+      data: {
+        articles: response.data.articles.map((article) => ({
+          title: article.title,
+          description: article.description,
+          url: article.url,
+          source: article.source?.name || "Unknown",
+          publishedAt: article.publishedAt,
+          urlToImage: article.urlToImage,
+          author: article.author,
+        })),
+        total: response.data.articles.length,
+      },
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error("❌ Trending news error:", error);
+    res.status(500).json({
+      success: false,
+      error: { code: "TRENDING_FAILED", message: error.message },
+      timestamp: new Date().toISOString(),
+    });
+  }
+});
+
 module.exports = router;

@@ -5,7 +5,7 @@ import { Home, Search, Library, Settings } from "lucide-react";
 const Sidebar = () => {
   const navItems = [
     { icon: Home, label: "Home", path: "/" },
-    { icon: Search, label: "News Search", path: "/news" },
+    { icon: Search, label: "Trending", path: "/news" },
     { icon: Library, label: "Your Library", path: "/library" },
   ];
 

@@ -11,10 +11,13 @@ const api = axios.create({
   },
 });
 
-// News API
 export const newsAPI = {
   search: async (query, pageSize = 10) => {
     const response = await api.post("/news/search", { query, pageSize });
+    return response.data;
+  },
+  trending: async () => {
+    const response = await api.get("/news/trending");
     return response.data;
   },
 };
