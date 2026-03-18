@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { searchNews } = require("../services/newsService");
+const { searchNews, extractKeywords } = require("../services/newsService");
 
 // POST /api/news/search - Search for news articles
 router.post("/search", async (req, res) => {
@@ -21,14 +21,22 @@ router.post("/search", async (req, res) => {
 
     console.log(`📰 Searching news for: "${query}"`);
 
-    const articles = await searchNews(query);
+    // Extract keywords via Claude — falls back to raw query if extraction fails
+    let extractedKeywords = query;
+    try {
+      extractedKeywords = await extractKeywords(query);
+      console.log(`🔑 Keywords extracted: "${extractedKeywords}" (from: "${query}")`);
+    } catch (extractError) {
+      console.warn(`⚠️ Keyword extraction failed, using raw query: ${extractError.message}`);
+    }
 
-    // For now, return a success response
-    // We'll integrate with your NewsAPI tool in the next step
+    const articles = await searchNews(extractedKeywords);
+
     res.status(200).json({
       success: true,
       data: {
         query: query,
+        keywords: extractedKeywords,
         articles: articles.map((article) => ({
           title: article.title,
           description: article.description,
@@ -40,7 +48,7 @@ router.post("/search", async (req, res) => {
         })),
         total: articles.length,
       },
-      message: `Found ${articles.length} article(s) for "${query}"`,
+      message: `Found ${articles.length} article(s) for "${extractedKeywords}"`,
       timestamp: new Date().toISOString(),
     });
   } catch (error) {

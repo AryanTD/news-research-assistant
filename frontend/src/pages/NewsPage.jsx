@@ -9,6 +9,7 @@ const NewsPage = () => {
   const query = searchParams.get("q");
 
   const [articles, setArticles] = useState([]);
+  const [keywords, setKeywords] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -46,6 +47,7 @@ const NewsPage = () => {
 
       if (response.success) {
         setArticles(response.data.articles || []);
+        setKeywords(response.data.keywords || null);
       } else {
         setError("Failed to fetch news");
       }
@@ -128,8 +130,15 @@ const NewsPage = () => {
                 marginBottom: "8px",
               }}
             >
-              {query ? `Results for "${query}"` : "Trending Now 🔥"}
+              {query
+                ? `Results for "${keywords && keywords !== query ? keywords : query}"`
+                : "Trending Now"}
             </h1>
+            {keywords && keywords !== query && (
+              <p style={{ fontSize: "13px", color: "#6b7280", marginBottom: "4px" }}>
+                from: "{query}"
+              </p>
+            )}
             {!loading && (
               <p style={{ fontSize: "16px", color: "#b3b3b3" }}>
                 {query

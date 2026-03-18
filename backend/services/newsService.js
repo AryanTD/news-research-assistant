@@ -1,6 +1,36 @@
 const path = require("path");
 require("dotenv").config({ path: path.join(__dirname, "../.env") });
 const axios = require("axios");
+const Anthropic = require("@anthropic-ai/sdk");
+
+const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+
+// Matches phrases like "give me", "news about", etc. that signal a natural language query
+const FILLER_PATTERNS =
+  /\b(give me|show me|tell me|find me|search for|what is|what are|news about|articles about|i want|latest|recent)\b/i;
+
+async function extractKeywords(userInput) {
+  const trimmed = userInput.trim();
+  const wordCount = trimmed.split(/\s+/).length;
+
+  // If it's already short and has no filler words, skip Claude — save API cost
+  if (wordCount <= 3 && !FILLER_PATTERNS.test(trimmed)) {
+    return trimmed;
+  }
+
+  const response = await anthropic.messages.create({
+    model: "claude-haiku-4-5-20251001",
+    max_tokens: 30,
+    messages: [
+      {
+        role: "user",
+        content: `Extract the core search keywords from this query. Return ONLY the keywords, nothing else.\n\nQuery: "${trimmed}"`,
+      },
+    ],
+  });
+
+  return response.content[0].text.trim();
+}
 
 async function searchNews(query) {
   try {
@@ -33,4 +63,4 @@ async function searchNews(query) {
   }
 }
 
-module.exports = { searchNews };
+module.exports = { searchNews, extractKeywords };
