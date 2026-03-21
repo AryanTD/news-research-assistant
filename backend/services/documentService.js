@@ -398,6 +398,34 @@ class DocumentService {
     }
   }
   /**
+   * Delete a document and all its associated data.
+   * Removes metadata JSON, chunks JSON, and ChromaDB vectors.
+   * ChromaDB deletion is best-effort — if it's down, we still delete the files.
+   */
+  async deleteDocument(documentId) {
+    const metaPath = path.join(this.storageDir, `${documentId}.json`);
+    const chunksPath = path.join(this.chunksDir, `${documentId}_chunks.json`);
+
+    // Delete metadata file
+    await fs.unlink(metaPath);
+
+    // Delete chunks file (may not exist if processing failed mid-way)
+    try {
+      await fs.unlink(chunksPath);
+    } catch {
+      // Chunks file missing is fine — nothing to delete
+    }
+
+    // Remove vectors from ChromaDB (graceful degradation if unavailable)
+    try {
+      await chromaService.deleteDocument(documentId);
+      console.log(`🗑️  Vectors deleted from ChromaDB for ${documentId}`);
+    } catch (error) {
+      console.warn(`⚠️  Could not delete ChromaDB vectors for ${documentId}: ${error.message}`);
+    }
+  }
+
+  /**
    * Re-index an existing document in ChromaDB
    * Useful if vector storage failed during initial processing
    */

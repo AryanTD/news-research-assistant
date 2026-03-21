@@ -12,6 +12,9 @@ const LibraryPage = () => {
 
   const [selectedDoc, setSelectedDoc] = useState(null); // Document open in Q&A panel
 
+  const [selectionMode, setSelectionMode] = useState(false); // Multi-select mode active?
+  const [selectedIds, setSelectedIds] = useState(new Set()); // IDs of checked documents
+
   const [uploading, setUploading] = useState(false); // Is file uploading?
   const [uploadProgress, setUploadProgress] = useState(0); // Upload percentage
   const [dragActive, setDragActive] = useState(false); // Is user dragging file over zone?
@@ -122,11 +125,56 @@ const LibraryPage = () => {
     }
   };
 
+  // FUNCTION: Toggle selection mode on/off
+  const handleToggleSelectionMode = () => {
+    setSelectionMode((prev) => !prev);
+    setSelectedIds(new Set()); // Clear selections when toggling
+  };
+
+  // FUNCTION: Toggle a single document's selected state
+  const handleToggleSelect = (documentId) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      next.has(documentId) ? next.delete(documentId) : next.add(documentId);
+      return next;
+    });
+  };
+
+  // FUNCTION: Bulk delete all selected documents
+  const handleBulkDelete = async () => {
+    const count = selectedIds.size;
+    if (!window.confirm(`Delete ${count} document${count !== 1 ? "s" : ""}? This cannot be undone.`)) return;
+
+    const ids = Array.from(selectedIds);
+
+    // Fire all deletes in parallel
+    await Promise.all(ids.map((id) => documentsAPI.delete(id).catch(() => null)));
+
+    // Remove deleted docs from state in one update
+    setDocuments((prev) => prev.filter((d) => !ids.includes(d.id)));
+
+    // Close Q&A panel if its document was deleted
+    if (selectedDoc && ids.includes(selectedDoc.id)) setSelectedDoc(null);
+
+    // Exit selection mode
+    setSelectionMode(false);
+    setSelectedIds(new Set());
+  };
+
   // FUNCTION: Delete a document
   const handleDelete = async (documentId) => {
-    console.log("Delete clicked for:", documentId);
-    // We'll implement this fully later
-    alert("Delete functionality coming soon!");
+    try {
+      const response = await documentsAPI.delete(documentId);
+      if (response.success) {
+        setDocuments((prev) => prev.filter((d) => d.id !== documentId));
+        if (selectedDoc?.id === documentId) setSelectedDoc(null);
+      } else {
+        alert("Delete failed. Please try again.");
+      }
+    } catch (err) {
+      console.error("Delete error:", err);
+      alert("Delete failed. Please try again.");
+    }
   };
 
   // RENDER: What should the user see?
@@ -298,16 +346,60 @@ const LibraryPage = () => {
       {/* Documents Grid */}
       {!loading && !error && documents.length > 0 && (
         <div>
-          <h2
-            style={{
-              fontSize: "20px",
-              fontWeight: "bold",
-              color: "#ffffff",
-              marginBottom: "24px",
-            }}
-          >
-            Your Documents
-          </h2>
+          {/* Section header with Select toggle */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
+            <h2 style={{ fontSize: "20px", fontWeight: "bold", color: "#ffffff" }}>
+              Your Documents
+            </h2>
+            <button
+              onClick={handleToggleSelectionMode}
+              style={{
+                padding: "8px 16px",
+                backgroundColor: selectionMode ? "#3a3a3a" : "#242424",
+                color: selectionMode ? "#b3b3b3" : "#ffffff",
+                border: "1px solid #282828",
+                borderRadius: "8px",
+                fontSize: "13px",
+                cursor: "pointer",
+              }}
+            >
+              {selectionMode ? "Cancel" : "Select"}
+            </button>
+          </div>
+
+          {/* Bulk action bar — only visible when items are selected */}
+          {selectionMode && selectedIds.size > 0 && (
+            <div style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              padding: "12px 16px",
+              backgroundColor: "#1a1a1a",
+              border: "1px solid #282828",
+              borderRadius: "8px",
+              marginBottom: "16px",
+            }}>
+              <span style={{ fontSize: "14px", color: "#b3b3b3" }}>
+                {selectedIds.size} selected
+              </span>
+              <button
+                onClick={handleBulkDelete}
+                style={{
+                  padding: "8px 16px",
+                  backgroundColor: "#ef4444",
+                  color: "#ffffff",
+                  border: "none",
+                  borderRadius: "8px",
+                  fontSize: "13px",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                }}
+              >
+                Delete {selectedIds.size} document{selectedIds.size !== 1 ? "s" : ""}
+              </button>
+            </div>
+          )}
+
           <div
             style={{
               display: "grid",
@@ -321,6 +413,9 @@ const LibraryPage = () => {
                 document={doc}
                 onDelete={() => handleDelete(doc.id)}
                 onView={() => setSelectedDoc(doc)}
+                selectionMode={selectionMode}
+                isSelected={selectedIds.has(doc.id)}
+                onToggleSelect={() => handleToggleSelect(doc.id)}
               />
             ))}
           </div>
@@ -367,7 +462,7 @@ const LibraryPage = () => {
 };
 
 // Document Card Component
-const DocumentCard = ({ document, onDelete, onView }) => {
+const DocumentCard = ({ document, onDelete, onView, selectionMode, isSelected, onToggleSelect }) => {
   const [isHovered, setIsHovered] = useState(false);
   const navigate = useNavigate();
 
@@ -404,6 +499,7 @@ const DocumentCard = ({ document, onDelete, onView }) => {
 
   return (
     <div
+      onClick={selectionMode ? onToggleSelect : undefined}
       style={{
         backgroundColor: "#1a1a1a",
         borderRadius: "12px",
@@ -411,12 +507,36 @@ const DocumentCard = ({ document, onDelete, onView }) => {
         border: "1px solid #282828",
         transition: "all 0.2s ease",
         transform: isHovered ? "translateY(-4px)" : "translateY(0)",
-        borderColor: isHovered ? "#ef4444" : "#282828",
-        cursor: "pointer",
+        borderColor: isSelected ? "#ef4444" : isHovered ? "#ef4444" : "#282828",
+        cursor: selectionMode ? "pointer" : "pointer",
+        position: "relative",
+        opacity: selectionMode && !isSelected ? 0.7 : 1,
       }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
+      {/* Checkbox overlay — visible in selection mode */}
+      {selectionMode && (
+        <div style={{
+          position: "absolute",
+          top: "12px",
+          right: "12px",
+          zIndex: 2,
+          width: "22px",
+          height: "22px",
+          borderRadius: "50%",
+          backgroundColor: isSelected ? "#ef4444" : "#242424",
+          border: `2px solid ${isSelected ? "#ef4444" : "#6b7280"}`,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          color: "#ffffff",
+          fontSize: "13px",
+          fontWeight: "bold",
+        }}>
+          {isSelected ? "✓" : ""}
+        </div>
+      )}
       {/* File Icon Header */}
       <div
         style={{
@@ -533,8 +653,9 @@ const DocumentCard = ({ document, onDelete, onView }) => {
           </div>
         </div>
 
-        {/* Actions */}
+        {/* Actions — stop click from bubbling to card (which would toggle selection) */}
         <div
+          onClick={(e) => e.stopPropagation()}
           style={{
             display: "flex",
             gap: "8px",

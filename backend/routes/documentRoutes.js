@@ -127,6 +127,20 @@ router.get("/:id/content", async (req, res) => {
   }
 });
 
+// DELETE /api/documents/:id — delete document files and vectors
+router.delete("/:id", async (req, res) => {
+  const documentId = req.params.id;
+  console.log(`🗑️  Delete request for document: ${documentId}`);
+
+  try {
+    await documentService.deleteDocument(documentId);
+    res.json({ success: true, message: `Document ${documentId} deleted` });
+  } catch (error) {
+    const notFound = error.code === "ENOENT";
+    res.status(notFound ? 404 : 500).json({ success: false, error: error.message });
+  }
+});
+
 // POST /api/documents/:id/qa — RAG Q&A for a specific document
 router.post("/:id/qa", async (req, res) => {
   const { question, history = [] } = req.body;

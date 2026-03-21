@@ -46,6 +46,11 @@ export const documentsAPI = {
     return response.data;
   },
 
+  delete: async (documentId) => {
+    const response = await api.delete(`/documents/${documentId}`);
+    return response.data;
+  },
+
   ask: async (documentId, question, history = []) => {
     const response = await api.post(`/documents/${documentId}/qa`, { question, history });
     return response.data;
