@@ -1,11 +1,16 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { Sparkles } from "lucide-react";
 import { documentsAPI } from "../services/api";
+import DocumentQAPanel from "../components/library/DocumentQAPanel";
 
 const LibraryPage = () => {
   // STATE: What data does this page need to track?
   const [documents, setDocuments] = useState([]); // Array of documents
   const [loading, setLoading] = useState(true); // Are we loading?
   const [error, setError] = useState(null); // Any errors?
+
+  const [selectedDoc, setSelectedDoc] = useState(null); // Document open in Q&A panel
 
   const [uploading, setUploading] = useState(false); // Is file uploading?
   const [uploadProgress, setUploadProgress] = useState(0); // Upload percentage
@@ -315,6 +320,7 @@ const LibraryPage = () => {
                 key={doc.id}
                 document={doc}
                 onDelete={() => handleDelete(doc.id)}
+                onView={() => setSelectedDoc(doc)}
               />
             ))}
           </div>
@@ -348,13 +354,22 @@ const LibraryPage = () => {
           100% { transform: rotate(360deg); }
         }
       `}</style>
+
+      {/* Document Q&A slide-out panel */}
+      {selectedDoc && (
+        <DocumentQAPanel
+          document={selectedDoc}
+          onClose={() => setSelectedDoc(null)}
+        />
+      )}
     </div>
   );
 };
 
 // Document Card Component
-const DocumentCard = ({ document, onDelete }) => {
+const DocumentCard = ({ document, onDelete, onView }) => {
   const [isHovered, setIsHovered] = useState(false);
+  const navigate = useNavigate();
 
   // Helper: Format file size
   const formatFileSize = (bytes) => {
@@ -525,7 +540,12 @@ const DocumentCard = ({ document, onDelete }) => {
             gap: "8px",
           }}
         >
+          {/* View — navigates to full-page reader */}
           <button
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate(`/library/${document.id}`);
+            }}
             style={{
               flex: 1,
               padding: "10px 16px",
@@ -548,6 +568,39 @@ const DocumentCard = ({ document, onDelete }) => {
             View
           </button>
 
+          {/* Ask AI — opens Q&A slide panel */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onView();
+            }}
+            style={{
+              padding: "10px 12px",
+              backgroundColor: "#242424",
+              color: "#ffffff",
+              border: "1px solid #282828",
+              borderRadius: "8px",
+              fontSize: "14px",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: "5px",
+              transition: "all 0.2s ease",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = "#2f2f2f";
+              e.currentTarget.style.borderColor = "#ef4444";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = "#242424";
+              e.currentTarget.style.borderColor = "#282828";
+            }}
+            title="Ask AI about this document"
+          >
+            <Sparkles size={14} color="#ef4444" />
+          </button>
+
+          {/* Delete */}
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -556,7 +609,7 @@ const DocumentCard = ({ document, onDelete }) => {
               }
             }}
             style={{
-              padding: "10px 16px",
+              padding: "10px 12px",
               backgroundColor: "#242424",
               color: "#ffffff",
               border: "1px solid #282828",

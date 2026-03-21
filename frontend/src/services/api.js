@@ -1,7 +1,7 @@
 import axios from "axios";
 
 // Base URL for your backend
-const API_BASE_URL = "http://localhost:3000/api";
+export const API_BASE_URL = "http://localhost:3000/api";
 
 // Create axios instance
 const api = axios.create({
@@ -38,6 +38,16 @@ export const documentsAPI = {
 
   list: async () => {
     const response = await api.get("/documents");
+    return response.data;
+  },
+
+  getContent: async (documentId) => {
+    const response = await api.get(`/documents/${documentId}/content`);
+    return response.data;
+  },
+
+  ask: async (documentId, question, history = []) => {
+    const response = await api.post(`/documents/${documentId}/qa`, { question, history });
     return response.data;
   },
 };

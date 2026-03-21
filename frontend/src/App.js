@@ -4,6 +4,7 @@ import MainLayout from "./components/layout/MainLayout";
 import HomePage from "./pages/HomePage";
 import NewsPage from "./pages/NewsPage";
 import LibraryPage from "./pages/LibraryPage";
+import DocumentReaderPage from "./pages/DocumentReaderPage";
 
 function App() {
   return (
@@ -13,6 +14,7 @@ function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/news" element={<NewsPage />} />
           <Route path="/library" element={<LibraryPage />} />
+          <Route path="/library/:id" element={<DocumentReaderPage />} />
           <Route
             path="/settings"
             element={

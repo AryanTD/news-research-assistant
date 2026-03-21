@@ -301,16 +301,79 @@ class DocumentService {
         chunks.push(...fileChunks);
       }
 
-      // Simple keyword search (we'll improve this with vector search later)
-      const queryLower = query.toLowerCase();
-      const results = chunks.filter((chunk) =>
-        chunk.text.toLowerCase().includes(queryLower),
-      );
+      // Split query into meaningful keywords (ignore short stop words like "what", "the", "a")
+      const keywords = query
+        .toLowerCase()
+        .replace(/[?.,!;:]/g, "")
+        .split(/\s+/)
+        .filter((w) => w.length > 3);
 
-      return results.slice(0, 5); // Return top 5 matches
+      // Fall back to full-phrase match if no meaningful keywords extracted
+      if (keywords.length === 0) {
+        return chunks.filter((c) => c.text.toLowerCase().includes(query.toLowerCase())).slice(0, 5);
+      }
+
+      // Score each chunk by how many keywords it contains, return top matches
+      const scored = chunks
+        .map((chunk) => {
+          const text = chunk.text.toLowerCase();
+          const matchCount = keywords.filter((kw) => text.includes(kw)).length;
+          return { chunk, matchCount };
+        })
+        .filter(({ matchCount }) => matchCount > 0)
+        .sort((a, b) => b.matchCount - a.matchCount);
+
+      return scored.slice(0, 5).map(({ chunk }) => chunk);
     } catch (error) {
       throw new Error(`Search failed: ${error.message}`);
     }
+  }
+
+  /**
+   * Reassemble the full document text from stored chunks.
+   * Chunks overlap by 200 chars — we skip the overlap when joining so
+   * the returned text matches the original document faithfully.
+   */
+  async getDocumentContent(documentId) {
+    // Load metadata
+    const metaPath = path.join(this.storageDir, `${documentId}.json`);
+    let metadata;
+    try {
+      const raw = await fs.readFile(metaPath, "utf-8");
+      metadata = JSON.parse(raw);
+    } catch {
+      throw new Error(`Document not found: ${documentId}`);
+    }
+
+    // Load and sort chunks
+    const chunksPath = path.join(this.chunksDir, `${documentId}_chunks.json`);
+    const chunksRaw = await fs.readFile(chunksPath, "utf-8");
+    const chunks = JSON.parse(chunksRaw).sort((a, b) => a.chunkIndex - b.chunkIndex);
+
+    // Reconstruct full text by skipping overlapping portions
+    let fullText = chunks[0].text;
+    let currentEnd = chunks[0].endIndex;
+    for (let i = 1; i < chunks.length; i++) {
+      const chunk = chunks[i];
+      const overlapLen = currentEnd - chunk.startIndex;
+      if (overlapLen > 0 && overlapLen < chunk.text.length) {
+        fullText += chunk.text.slice(overlapLen);
+      } else if (overlapLen <= 0) {
+        fullText += chunk.text;
+      }
+      currentEnd = chunk.endIndex;
+    }
+
+    return {
+      id: metadata.id,
+      filename: metadata.filename,
+      fileType: metadata.fileType,
+      chunkCount: metadata.chunkCount,
+      textLength: metadata.textLength,
+      timestamp: metadata.timestamp,
+      pages: metadata.pages || null,
+      text: fullText,
+    };
   }
 
   // List all documents
@@ -376,10 +439,23 @@ class DocumentService {
    */
   async semanticSearch(query, nResults = 5, documentId = null) {
     try {
+      // Cap nResults to avoid ChromaDB throwing when filter matches fewer items than requested
+      let safeNResults = nResults;
+      if (documentId) {
+        const chunksPath = path.join(this.chunksDir, `${documentId}_chunks.json`);
+        try {
+          const raw = await fs.readFile(chunksPath, "utf-8");
+          const chunks = JSON.parse(raw);
+          safeNResults = Math.min(nResults, chunks.length);
+        } catch {
+          // If we can't read the file, proceed with the original nResults
+        }
+      }
+
       // Try semantic search with ChromaDB
       const results = await chromaService.searchSimilar(
         query,
-        nResults,
+        safeNResults,
         documentId,
       );
 

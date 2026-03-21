@@ -344,4 +344,35 @@ async function askClaude(conversationHistory) {
   }
 }
 
-module.exports = { askClaude };
+// Answer a question grounded in retrieved document chunks (RAG)
+// No tool-use loop needed — just a focused single Claude call
+async function answerWithContext(question, chunks, history = []) {
+  const context = chunks
+    .map((c, i) => `[Chunk ${i + 1}]:\n${c.text}`)
+    .join("\n\n");
+
+  const systemPrompt = `You are a helpful assistant answering questions about a document.
+You have been given relevant excerpts from the document below. Answer ONLY from
+the provided content. If the answer is not in the excerpts, say so clearly.
+Be concise and cite which chunk(s) support your answer.
+
+Document excerpts:
+${context}`;
+
+  // Build messages: prior history + new question
+  const messages = [
+    ...history,
+    { role: "user", content: question },
+  ];
+
+  const response = await anthropic.messages.create({
+    model: "claude-haiku-4-5-20251001",
+    max_tokens: 1024,
+    system: systemPrompt,
+    messages,
+  });
+
+  return response.content[0].text;
+}
+
+module.exports = { askClaude, answerWithContext };

@@ -89,6 +89,8 @@ Split backend/frontend project.
 
 **News search**: User types in SearchBar → navigates to `/news?q=query` → NewsPage reads query param → calls `POST /api/news/search` → NewsAPI → articles displayed in cards.
 
+**Smart search (keyword extraction)**: User types natural language → backend sends input to Claude for keyword extraction → extracted keywords sent to NewsAPI → results displayed. Skips Claude if input already looks like plain keywords.
+
 **Trending**: NewsPage loads with no query → calls `GET /api/news/trending` → top headlines displayed.
 
 **Document upload**: LibraryPage drag-and-drop or file picker → `POST /api/documents/upload` → backend processes file → chunks stored to disk + indexed in ChromaDB → document list refreshed.
@@ -112,32 +114,32 @@ Split backend/frontend project.
 - **Icons**: `lucide-react` only. Match existing icon usage.
 - **Article cards**: Text-forward compact design. NO images or image placeholders. Structure: source (red, uppercase) + date → bold title → description → action buttons (Read Article + AI Sparkles).
 - **Article list view**: Single row per article — source | title | date | actions. Dense and scannable.
-- **Grid/list toggle**: News page should support toggling between card grid and list view.
+- **Grid/list toggle**: News page supports toggling between card grid and list view.
+- **Slide-out panel**: Reusable right-side panel pattern used for Document Q&A and Article Summary. Panel has: header with title + close button, content area, and input/action bar at the bottom. Same dark theme styling as the rest of the app.
 
 ## Current Project Status
 
-### Working:
+### Completed:
 
 - Home page with search bar and suggestion chips (navigates to `/news?q=...`)
-- News page with search and trending auto-load
+- Smart search with Claude-powered keyword extraction for natural language queries
+- News page with search, trending auto-load, text-forward article cards, and grid/list toggle
 - Document Library with drag-and-drop upload, processing, and document cards
 - ChromaDB semantic search with keyword fallback
 - Backend chat with full Claude tool-use loop (CLI only, no frontend UI)
 - Sidebar navigation
 
-### Needs to be built/fixed (in priority order):
+### Next to build (in priority order):
 
-1. **Smart search**: Search bar passes raw user input to NewsAPI as keywords. Natural language like "give me news about Nepal election" returns nothing because NewsAPI can't match sentences against titles. Fix: add a Claude-powered keyword extraction step before calling NewsAPI. Send user input to Claude → extract keywords → search NewsAPI with keywords. Apply to all search bars (Home + News page).
+1. **Document Q&A (RAG)**: Add a slide-out panel to the Library page. When user clicks a document card, the panel opens on the right with a chat interface scoped to that document. User asks a question → backend generates embedding of the question → searches ChromaDB for relevant chunks from that specific document → sends chunks + question to Claude → Claude responds grounded in the document content. Responses should include source references (which chunks were used). Support follow-up questions (multi-turn within the panel).
 
-2. **Article card redesign**: Remove the image/emoji placeholder section from `ArticleCard` in NewsPage. Use text-forward compact layout. Add grid/list view toggle.
-
-3. **Delete document**: Delete button on document cards shows "coming soon" alert. Backend endpoint may not exist yet.
+2. **Article Summary (Sparkles button)**: Wire up the AI/Sparkles button on article cards. When clicked, a slide-out panel opens on the right showing a structured AI summary of the article. Backend: receive article URL → scrape content with Cheerio → send to Claude with summarization prompt → return structured summary (overview, key points, why it matters). Panel also has a "Read full article" link and an "Ask about this" button for follow-up questions.
 
 ### Not a priority right now:
 
-- AI Sparkles button on article cards (non-functional, will wire up later)
+- Delete document functionality (button shows "coming soon" alert)
 - Settings page (stub)
-- Chat UI in frontend (backend ready, no frontend)
+- Full chat UI in frontend (backend ready, no frontend)
 
 ## Git Conventions
 
