@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Sparkles, ChevronLeft, ChevronRight, X, Search } from "lucide-react";
 import { documentsAPI, API_BASE_URL } from "../services/api";
 import DocumentQAPanel from "../components/library/DocumentQAPanel";
+import { useTheme } from "../context/ThemeContext";
 
 const PAGE_SIZE = 3000;
 
@@ -63,10 +64,10 @@ function findAllMatches(pages, query) {
 
 // Render page text with search matches highlighted.
 // activeMatchIndex is the index within matchesOnThisPage that is the "current" match.
-function HighlightedText({ text, query, matchesOnPage, activeMatchIndexOnPage }) {
+function HighlightedText({ text, query, matchesOnPage, activeMatchIndexOnPage, theme }) {
   if (!query || matchesOnPage.length === 0) {
     return (
-      <p style={{ fontSize: "16px", lineHeight: "1.9", color: "#c9c9c9", whiteSpace: "pre-wrap", wordBreak: "break-word", fontFamily: "Georgia, 'Times New Roman', serif", margin: 0 }}>
+      <p style={{ fontSize: "16px", lineHeight: "1.9", color: theme.textBody, whiteSpace: "pre-wrap", wordBreak: "break-word", fontFamily: "Georgia, 'Times New Roman', serif", margin: 0 }}>
         {text}
       </p>
     );
@@ -85,7 +86,7 @@ function HighlightedText({ text, query, matchesOnPage, activeMatchIndexOnPage })
   if (cursor < text.length) segments.push({ type: "text", content: text.slice(cursor) });
 
   return (
-    <p style={{ fontSize: "16px", lineHeight: "1.9", color: "#c9c9c9", whiteSpace: "pre-wrap", wordBreak: "break-word", fontFamily: "Georgia, 'Times New Roman', serif", margin: 0 }}>
+    <p style={{ fontSize: "16px", lineHeight: "1.9", color: theme.textBody, whiteSpace: "pre-wrap", wordBreak: "break-word", fontFamily: "Georgia, 'Times New Roman', serif", margin: 0 }}>
       {segments.map((seg, i) =>
         seg.type === "text" ? (
           <span key={i}>{seg.content}</span>
@@ -93,7 +94,7 @@ function HighlightedText({ text, query, matchesOnPage, activeMatchIndexOnPage })
           <mark
             key={i}
             style={{
-              backgroundColor: seg.isActive ? "#ef4444" : "#facc15",
+              backgroundColor: seg.isActive ? theme.accent : "#facc15",
               color: seg.isActive ? "#ffffff" : "#000000",
               borderRadius: "2px",
               padding: "0 1px",
@@ -109,6 +110,7 @@ function HighlightedText({ text, query, matchesOnPage, activeMatchIndexOnPage })
 
 // ── TXT pager ──────────────────────────────────────────────────────────────
 const TxtReader = ({ text }) => {
+  const { theme } = useTheme();
   const [pages]                       = useState(() => buildPages(text));
   const [currentPage, setCurrentPage] = useState(0);
   const [fading, setFading]           = useState(false);
@@ -185,7 +187,7 @@ const TxtReader = ({ text }) => {
 
   // Matches on the current page
   const matchesOnCurrentPage = allMatches.filter(m => m.pageIndex === currentPage);
-  // Which of those is the active (red) one?
+  // Which of those is the active (accent) one?
   const activeMatch = allMatches[matchIndex];
   const activeMatchIndexOnPage = activeMatch?.pageIndex === currentPage
     ? matchesOnCurrentPage.indexOf(matchesOnCurrentPage.find(
@@ -199,9 +201,9 @@ const TxtReader = ({ text }) => {
 
   const navBtn = (disabled) => ({
     padding: "6px 14px", borderRadius: "6px",
-    border: "1px solid " + (disabled ? "#1e1e1e" : "#282828"),
+    border: "1px solid " + (disabled ? theme.navBorderDisabled : theme.border),
     backgroundColor: "transparent",
-    color: disabled ? "#3a3a3a" : "#b3b3b3",
+    color: disabled ? theme.navTextDisabled : theme.textSecondary,
     fontSize: "14px", cursor: disabled ? "not-allowed" : "pointer",
     display: "flex", alignItems: "center", gap: "4px",
     transition: "all 0.15s ease",
@@ -215,11 +217,11 @@ const TxtReader = ({ text }) => {
         <div style={{
           position: "absolute", top: "16px", right: "32px", zIndex: 100,
           display: "flex", alignItems: "center", gap: "6px",
-          backgroundColor: "#1a1a1a", border: "1px solid #282828",
+          backgroundColor: theme.cardBg, border: `1px solid ${theme.border}`,
           borderRadius: "10px", padding: "8px 12px",
-          boxShadow: "0 4px 20px rgba(0,0,0,0.5)",
+          boxShadow: "0 4px 20px rgba(0,0,0,0.2)",
         }}>
-          <Search size={14} color="#6b7280" />
+          <Search size={14} color={theme.textMuted} />
           <input
             ref={searchInputRef}
             type="text"
@@ -228,12 +230,12 @@ const TxtReader = ({ text }) => {
             placeholder="Search document…"
             style={{
               width: "220px", backgroundColor: "transparent", border: "none",
-              color: "#ffffff", fontSize: "14px", outline: "none",
+              color: theme.textPrimary, fontSize: "14px", outline: "none",
             }}
           />
           {/* Match counter */}
           {searchQuery && (
-            <span style={{ fontSize: "12px", color: "#6b7280", whiteSpace: "nowrap" }}>
+            <span style={{ fontSize: "12px", color: theme.textMuted, whiteSpace: "nowrap" }}>
               {allMatches.length === 0
                 ? "No results"
                 : `${matchIndex + 1} / ${allMatches.length}`}
@@ -244,9 +246,9 @@ const TxtReader = ({ text }) => {
             onClick={() => goToMatch(-1)}
             disabled={allMatches.length === 0}
             title="Previous match (Shift+Enter)"
-            style={{ background: "none", border: "none", cursor: allMatches.length > 0 ? "pointer" : "not-allowed", color: allMatches.length > 0 ? "#b3b3b3" : "#3a3a3a", padding: "2px", display: "flex" }}
-            onMouseEnter={(e) => { if (allMatches.length > 0) e.currentTarget.style.color = "#ffffff"; }}
-            onMouseLeave={(e) => { if (allMatches.length > 0) e.currentTarget.style.color = "#b3b3b3"; }}
+            style={{ background: "none", border: "none", cursor: allMatches.length > 0 ? "pointer" : "not-allowed", color: allMatches.length > 0 ? theme.textSecondary : theme.navTextDisabled, padding: "2px", display: "flex" }}
+            onMouseEnter={(e) => { if (allMatches.length > 0) e.currentTarget.style.color = theme.textPrimary; }}
+            onMouseLeave={(e) => { if (allMatches.length > 0) e.currentTarget.style.color = theme.textSecondary; }}
           >
             <ChevronLeft size={16} />
           </button>
@@ -255,9 +257,9 @@ const TxtReader = ({ text }) => {
             onClick={() => goToMatch(1)}
             disabled={allMatches.length === 0}
             title="Next match (Enter)"
-            style={{ background: "none", border: "none", cursor: allMatches.length > 0 ? "pointer" : "not-allowed", color: allMatches.length > 0 ? "#b3b3b3" : "#3a3a3a", padding: "2px", display: "flex" }}
-            onMouseEnter={(e) => { if (allMatches.length > 0) e.currentTarget.style.color = "#ffffff"; }}
-            onMouseLeave={(e) => { if (allMatches.length > 0) e.currentTarget.style.color = "#b3b3b3"; }}
+            style={{ background: "none", border: "none", cursor: allMatches.length > 0 ? "pointer" : "not-allowed", color: allMatches.length > 0 ? theme.textSecondary : theme.navTextDisabled, padding: "2px", display: "flex" }}
+            onMouseEnter={(e) => { if (allMatches.length > 0) e.currentTarget.style.color = theme.textPrimary; }}
+            onMouseLeave={(e) => { if (allMatches.length > 0) e.currentTarget.style.color = theme.textSecondary; }}
           >
             <ChevronRight size={16} />
           </button>
@@ -265,9 +267,9 @@ const TxtReader = ({ text }) => {
           <button
             onClick={closeSearch}
             title="Close (Esc)"
-            style={{ background: "none", border: "none", cursor: "pointer", color: "#6b7280", padding: "2px", display: "flex" }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = "#ffffff")}
-            onMouseLeave={(e) => (e.currentTarget.style.color = "#6b7280")}
+            style={{ background: "none", border: "none", cursor: "pointer", color: theme.textMuted, padding: "2px", display: "flex" }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = theme.textPrimary)}
+            onMouseLeave={(e) => (e.currentTarget.style.color = theme.textMuted)}
           >
             <X size={14} />
           </button>
@@ -278,9 +280,9 @@ const TxtReader = ({ text }) => {
       <div style={{ flex: 1, overflowY: "auto", padding: "40px 32px 24px" }}>
         <div style={{
           maxWidth: "720px", margin: "0 auto",
-          backgroundColor: "#1a1a1a", border: "1px solid #282828",
+          backgroundColor: theme.cardBg, border: `1px solid ${theme.border}`,
           borderRadius: "12px", padding: "48px 56px",
-          boxShadow: "0 8px 32px rgba(0,0,0,0.4)", minHeight: "400px",
+          boxShadow: "0 8px 32px rgba(0,0,0,0.1)", minHeight: "400px",
           opacity: fading ? 0 : 1, transition: "opacity 0.15s ease",
         }}>
           <HighlightedText
@@ -288,14 +290,15 @@ const TxtReader = ({ text }) => {
             query={searchQuery}
             matchesOnPage={matchesOnCurrentPage}
             activeMatchIndexOnPage={activeMatchIndexOnPage}
+            theme={theme}
           />
         </div>
       </div>
 
       {/* Sticky bottom pagination bar */}
       <div style={{
-        flexShrink: 0, borderTop: "1px solid #282828",
-        backgroundColor: "#121212", padding: "12px 24px",
+        flexShrink: 0, borderTop: `1px solid ${theme.border}`,
+        backgroundColor: theme.mainBg, padding: "12px 24px",
         display: "flex", alignItems: "center", justifyContent: "center",
         gap: "6px", flexWrap: "wrap",
       }}>
@@ -303,30 +306,30 @@ const TxtReader = ({ text }) => {
           onClick={() => goToPage(currentPage - 1)}
           disabled={!canPrev}
           style={navBtn(!canPrev)}
-          onMouseEnter={(e) => { if (canPrev) { e.currentTarget.style.borderColor = "#ef4444"; e.currentTarget.style.color = "#ffffff"; } }}
-          onMouseLeave={(e) => { if (canPrev) { e.currentTarget.style.borderColor = "#282828"; e.currentTarget.style.color = "#b3b3b3"; } }}
+          onMouseEnter={(e) => { if (canPrev) { e.currentTarget.style.borderColor = theme.accent; e.currentTarget.style.color = theme.textPrimary; } }}
+          onMouseLeave={(e) => { if (canPrev) { e.currentTarget.style.borderColor = theme.border; e.currentTarget.style.color = theme.textSecondary; } }}
         >
           <ChevronLeft size={14} /> Prev
         </button>
 
         {paginationItems.map((item) =>
           typeof item === "string" ? (
-            <span key={item} style={{ color: "#6b7280", fontSize: "14px", padding: "0 2px" }}>…</span>
+            <span key={item} style={{ color: theme.textMuted, fontSize: "14px", padding: "0 2px" }}>…</span>
           ) : (
             <button
               key={item}
               onClick={() => goToPage(item)}
               style={{
                 minWidth: "34px", height: "34px", padding: "0 6px", borderRadius: "6px",
-                border: item === currentPage ? "1px solid #ef4444" : "1px solid #282828",
-                backgroundColor: item === currentPage ? "rgba(239,68,68,0.15)" : "transparent",
-                color: item === currentPage ? "#ef4444" : "#b3b3b3",
+                border: `1px solid ${item === currentPage ? theme.accent : theme.border}`,
+                backgroundColor: item === currentPage ? theme.accentBg : "transparent",
+                color: item === currentPage ? theme.accent : theme.textSecondary,
                 fontSize: "14px", fontWeight: item === currentPage ? 600 : 400,
                 cursor: item === currentPage ? "default" : "pointer",
                 transition: "all 0.15s ease",
               }}
-              onMouseEnter={(e) => { if (item !== currentPage) { e.currentTarget.style.borderColor = "#ef4444"; e.currentTarget.style.color = "#ffffff"; } }}
-              onMouseLeave={(e) => { if (item !== currentPage) { e.currentTarget.style.borderColor = "#282828"; e.currentTarget.style.color = "#b3b3b3"; } }}
+              onMouseEnter={(e) => { if (item !== currentPage) { e.currentTarget.style.borderColor = theme.accent; e.currentTarget.style.color = theme.textPrimary; } }}
+              onMouseLeave={(e) => { if (item !== currentPage) { e.currentTarget.style.borderColor = theme.border; e.currentTarget.style.color = theme.textSecondary; } }}
             >
               {item + 1}
             </button>
@@ -337,8 +340,8 @@ const TxtReader = ({ text }) => {
           onClick={() => goToPage(currentPage + 1)}
           disabled={!canNext}
           style={navBtn(!canNext)}
-          onMouseEnter={(e) => { if (canNext) { e.currentTarget.style.borderColor = "#ef4444"; e.currentTarget.style.color = "#ffffff"; } }}
-          onMouseLeave={(e) => { if (canNext) { e.currentTarget.style.borderColor = "#282828"; e.currentTarget.style.color = "#b3b3b3"; } }}
+          onMouseEnter={(e) => { if (canNext) { e.currentTarget.style.borderColor = theme.accent; e.currentTarget.style.color = theme.textPrimary; } }}
+          onMouseLeave={(e) => { if (canNext) { e.currentTarget.style.borderColor = theme.border; e.currentTarget.style.color = theme.textSecondary; } }}
         >
           Next <ChevronRight size={14} />
         </button>
@@ -351,6 +354,7 @@ const TxtReader = ({ text }) => {
 const DocumentReaderPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { theme } = useTheme();
 
   const [document, setDocument] = useState(null);
   const [loading, setLoading]   = useState(true);
@@ -381,8 +385,8 @@ const DocumentReaderPage = () => {
     return (
       <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "60vh" }}>
         <div style={{ textAlign: "center" }}>
-          <div style={{ width: "48px", height: "48px", border: "4px solid #1a1a1a", borderTop: "4px solid #ef4444", borderRadius: "50%", animation: "spin 1s linear infinite", margin: "0 auto 16px" }} />
-          <p style={{ color: "#b3b3b3", fontSize: "14px" }}>Loading document...</p>
+          <div style={{ width: "48px", height: "48px", border: `4px solid ${theme.cardBg}`, borderTop: `4px solid ${theme.accent}`, borderRadius: "50%", animation: "spin 1s linear infinite", margin: "0 auto 16px" }} />
+          <p style={{ color: theme.textSecondary, fontSize: "14px" }}>Loading document...</p>
           <style>{`@keyframes spin { 0%{transform:rotate(0deg)} 100%{transform:rotate(360deg)} }`}</style>
         </div>
       </div>
@@ -392,11 +396,11 @@ const DocumentReaderPage = () => {
   if (error) {
     return (
       <div style={{ padding: "32px", maxWidth: "680px", margin: "0 auto" }}>
-        <button onClick={() => navigate("/library")} style={{ display: "flex", alignItems: "center", gap: "8px", color: "#b3b3b3", background: "none", border: "none", cursor: "pointer", fontSize: "14px", padding: 0, marginBottom: "32px" }}>
+        <button onClick={() => navigate("/library")} style={{ display: "flex", alignItems: "center", gap: "8px", color: theme.textSecondary, background: "none", border: "none", cursor: "pointer", fontSize: "14px", padding: 0, marginBottom: "32px" }}>
           <ArrowLeft size={16} /> Back to Library
         </button>
-        <div style={{ padding: "24px", backgroundColor: "#1a1a1a", borderRadius: "12px", border: "1px solid #ef4444" }}>
-          <p style={{ color: "#ef4444", margin: 0 }}>Failed to load document: {error}</p>
+        <div style={{ padding: "24px", backgroundColor: theme.cardBg, borderRadius: "12px", border: `1px solid ${theme.accent}` }}>
+          <p style={{ color: theme.accent, margin: 0 }}>Failed to load document: {error}</p>
         </div>
       </div>
     );
@@ -416,23 +420,23 @@ const DocumentReaderPage = () => {
             <div style={{ flex: 1, minWidth: 0 }}>
               <button
                 onClick={() => navigate("/library")}
-                style={{ display: "flex", alignItems: "center", gap: "6px", color: "#b3b3b3", background: "none", border: "none", cursor: "pointer", fontSize: "13px", padding: 0, marginBottom: "12px", transition: "color 0.15s ease" }}
-                onMouseEnter={(e) => (e.currentTarget.style.color = "#ffffff")}
-                onMouseLeave={(e) => (e.currentTarget.style.color = "#b3b3b3")}
+                style={{ display: "flex", alignItems: "center", gap: "6px", color: theme.textSecondary, background: "none", border: "none", cursor: "pointer", fontSize: "13px", padding: 0, marginBottom: "12px", transition: "color 0.15s ease" }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = theme.textPrimary)}
+                onMouseLeave={(e) => (e.currentTarget.style.color = theme.textSecondary)}
               >
                 <ArrowLeft size={14} /> Back to Library
               </button>
 
               <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
-                <span style={{ fontSize: "11px", color: "#ef4444", fontWeight: 600, textTransform: "uppercase", backgroundColor: "rgba(239,68,68,0.1)", padding: "3px 8px", borderRadius: "4px", flexShrink: 0 }}>
+                <span style={{ fontSize: "11px", color: theme.accent, fontWeight: 600, textTransform: "uppercase", backgroundColor: theme.accentBg, padding: "3px 8px", borderRadius: "4px", flexShrink: 0 }}>
                   {document.fileType?.toUpperCase() || "DOC"}
                 </span>
-                <h1 style={{ fontSize: "20px", fontWeight: "bold", color: "#ffffff", margin: 0, wordBreak: "break-word" }}>
+                <h1 style={{ fontSize: "20px", fontWeight: "bold", color: theme.textPrimary, margin: 0, wordBreak: "break-word" }}>
                   {document.filename}
                 </h1>
               </div>
 
-              <p style={{ fontSize: "13px", color: "#6b7280", marginTop: "6px" }}>
+              <p style={{ fontSize: "13px", color: theme.textMuted, marginTop: "6px" }}>
                 {document.chunkCount} chunks
                 {document.pages ? ` · ${document.pages} pages` : ""}
                 {document.timestamp && ` · ${new Date(document.timestamp).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })}`}
@@ -441,15 +445,15 @@ const DocumentReaderPage = () => {
 
             <button
               onClick={() => setQaOpen(true)}
-              style={{ display: "flex", alignItems: "center", gap: "6px", padding: "10px 16px", backgroundColor: "#ef4444", color: "#ffffff", border: "none", borderRadius: "8px", fontSize: "14px", fontWeight: 600, cursor: "pointer", flexShrink: 0, transition: "background-color 0.15s ease" }}
-              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#dc2626")}
-              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#ef4444")}
+              style={{ display: "flex", alignItems: "center", gap: "6px", padding: "10px 16px", backgroundColor: theme.accent, color: "#ffffff", border: "none", borderRadius: "8px", fontSize: "14px", fontWeight: 600, cursor: "pointer", flexShrink: 0, transition: "background-color 0.15s ease" }}
+              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = theme.accentHover)}
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = theme.accent)}
             >
               <Sparkles size={14} /> Ask AI
             </button>
           </div>
 
-          <div style={{ maxWidth: isPDF ? "none" : "820px", margin: "0 auto", borderTop: "1px solid #282828" }} />
+          <div style={{ maxWidth: isPDF ? "none" : "820px", margin: "0 auto", borderTop: `1px solid ${theme.border}` }} />
         </div>
 
         {/* ── Body ── */}

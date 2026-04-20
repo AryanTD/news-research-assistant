@@ -3,10 +3,12 @@ import { useSearchParams, Link } from "react-router-dom";
 import { ArrowLeft, Sparkles, ExternalLink, LayoutGrid, List } from "lucide-react";
 import { newsAPI } from "../services/api";
 import SearchBar from "../components/common/SearchBar";
+import { useTheme } from "../context/ThemeContext";
 
 const NewsPage = () => {
   const [searchParams] = useSearchParams();
   const query = searchParams.get("q");
+  const { theme } = useTheme();
 
   const [articles, setArticles] = useState([]);
   const [keywords, setKeywords] = useState(null);
@@ -61,14 +63,14 @@ const NewsPage = () => {
   };
 
   return (
-    <div style={{ minHeight: "100vh", backgroundColor: "#121212" }}>
+    <div style={{ minHeight: "100vh", backgroundColor: theme.mainBg }}>
       {/* Header with Back Button and Search */}
       <div
         style={{
           position: "sticky",
           top: 0,
-          backgroundColor: "#121212",
-          borderBottom: "1px solid #282828",
+          backgroundColor: theme.mainBg,
+          borderBottom: `1px solid ${theme.border}`,
           padding: "16px 32px",
           zIndex: 10,
         }}
@@ -92,16 +94,16 @@ const NewsPage = () => {
               width: "40px",
               height: "40px",
               borderRadius: "50%",
-              backgroundColor: "#1a1a1a",
-              color: "#ffffff",
+              backgroundColor: theme.cardBg,
+              color: theme.textPrimary,
               textDecoration: "none",
               transition: "all 0.2s ease",
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = "#242424";
+              e.currentTarget.style.backgroundColor = theme.cardBgHover;
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = "#1a1a1a";
+              e.currentTarget.style.backgroundColor = theme.cardBg;
             }}
           >
             <ArrowLeft size={20} />
@@ -127,7 +129,7 @@ const NewsPage = () => {
               style={{
                 fontSize: "32px",
                 fontWeight: "bold",
-                color: "#ffffff",
+                color: theme.textPrimary,
                 marginBottom: "8px",
               }}
             >
@@ -136,12 +138,12 @@ const NewsPage = () => {
                 : "Trending Now"}
             </h1>
             {keywords && keywords !== query && (
-              <p style={{ fontSize: "13px", color: "#6b7280", marginBottom: "4px" }}>
+              <p style={{ fontSize: "13px", color: theme.textMuted, marginBottom: "4px" }}>
                 from: "{query}"
               </p>
             )}
             {!loading && (
-              <p style={{ fontSize: "16px", color: "#b3b3b3" }}>
+              <p style={{ fontSize: "16px", color: theme.textSecondary }}>
                 {query
                   ? `Found ${articles.length} article${articles.length !== 1 ? "s" : ""}`
                   : "Top headlines right now"}
@@ -158,7 +160,7 @@ const NewsPage = () => {
                   background: "transparent",
                   border: "none",
                   cursor: "pointer",
-                  color: viewMode === "grid" ? "#ef4444" : "#6b7280",
+                  color: viewMode === "grid" ? theme.accent : theme.textMuted,
                   padding: "4px",
                   display: "flex",
                   alignItems: "center",
@@ -173,7 +175,7 @@ const NewsPage = () => {
                   background: "transparent",
                   border: "none",
                   cursor: "pointer",
-                  color: viewMode === "list" ? "#ef4444" : "#6b7280",
+                  color: viewMode === "list" ? theme.accent : theme.textMuted,
                   padding: "4px",
                   display: "flex",
                   alignItems: "center",
@@ -201,14 +203,14 @@ const NewsPage = () => {
                 style={{
                   width: "48px",
                   height: "48px",
-                  border: "4px solid #1a1a1a",
-                  borderTop: "4px solid #ef4444",
+                  border: `4px solid ${theme.cardBg}`,
+                  borderTop: `4px solid ${theme.accent}`,
                   borderRadius: "50%",
                   animation: "spin 1s linear infinite",
                   margin: "0 auto 16px",
                 }}
               />
-              <p style={{ color: "#b3b3b3" }}>Searching news...</p>
+              <p style={{ color: theme.textSecondary }}>Searching news...</p>
             </div>
           </div>
         )}
@@ -218,13 +220,13 @@ const NewsPage = () => {
           <div
             style={{
               padding: "24px",
-              backgroundColor: "#1a1a1a",
+              backgroundColor: theme.cardBg,
               borderRadius: "12px",
-              border: "1px solid #ef4444",
+              border: `1px solid ${theme.accent}`,
               textAlign: "center",
             }}
           >
-            <p style={{ color: "#ef4444", fontSize: "16px" }}>❌ {error}</p>
+            <p style={{ color: theme.accent, fontSize: "16px" }}>❌ {error}</p>
           </div>
         )}
 
@@ -264,13 +266,13 @@ const NewsPage = () => {
               style={{
                 fontSize: "24px",
                 fontWeight: "bold",
-                color: "#ffffff",
+                color: theme.textPrimary,
                 marginBottom: "8px",
               }}
             >
               No articles found
             </h2>
-            <p style={{ color: "#b3b3b3" }}>Try a different search term</p>
+            <p style={{ color: theme.textSecondary }}>Try a different search term</p>
           </div>
         )}
       </div>
@@ -289,17 +291,17 @@ const NewsPage = () => {
 // Article Card Component
 const ArticleCard = ({ article }) => {
   const [isHovered, setIsHovered] = useState(false);
+  const { theme } = useTheme();
 
   return (
     <div
       style={{
-        backgroundColor: "#1a1a1a",
+        backgroundColor: theme.cardBg,
         borderRadius: "12px",
         overflow: "hidden",
-        border: "1px solid #282828",
+        border: `1px solid ${isHovered ? theme.accent : theme.border}`,
         transition: "all 0.2s ease",
         transform: isHovered ? "translateY(-4px)" : "translateY(0)",
-        borderColor: isHovered ? "#ef4444" : "#282828",
         cursor: "pointer",
       }}
       onMouseEnter={() => setIsHovered(true)}
@@ -319,15 +321,15 @@ const ArticleCard = ({ article }) => {
           <span
             style={{
               fontSize: "12px",
-              color: "#ef4444",
+              color: theme.accent,
               fontWeight: 600,
               textTransform: "uppercase",
             }}
           >
             {article.source || "News Source"}
           </span>
-          <span style={{ color: "#6b7280" }}>•</span>
-          <span style={{ fontSize: "12px", color: "#6b7280" }}>
+          <span style={{ color: theme.textMuted }}>•</span>
+          <span style={{ fontSize: "12px", color: theme.textMuted }}>
             {article.publishedAt
               ? new Date(article.publishedAt).toLocaleDateString()
               : "Recent"}
@@ -339,7 +341,7 @@ const ArticleCard = ({ article }) => {
           style={{
             fontSize: "18px",
             fontWeight: "bold",
-            color: "#ffffff",
+            color: theme.textPrimary,
             marginBottom: "12px",
             lineHeight: "1.4",
             display: "-webkit-box",
@@ -355,7 +357,7 @@ const ArticleCard = ({ article }) => {
         <p
           style={{
             fontSize: "14px",
-            color: "#b3b3b3",
+            color: theme.textSecondary,
             lineHeight: "1.6",
             marginBottom: "16px",
             display: "-webkit-box",
@@ -378,7 +380,7 @@ const ArticleCard = ({ article }) => {
             style={{
               flex: 1,
               padding: "10px 16px",
-              backgroundColor: "#ef4444",
+              backgroundColor: theme.accent,
               color: "#ffffff",
               border: "none",
               borderRadius: "8px",
@@ -392,10 +394,10 @@ const ArticleCard = ({ article }) => {
               transition: "all 0.2s ease",
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = "#dc2626";
+              e.currentTarget.style.backgroundColor = theme.accentHover;
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = "#ef4444";
+              e.currentTarget.style.backgroundColor = theme.accent;
             }}
             onClick={() => {
               if (article.url) {
@@ -410,9 +412,9 @@ const ArticleCard = ({ article }) => {
           <button
             style={{
               padding: "10px 16px",
-              backgroundColor: "#242424",
-              color: "#ffffff",
-              border: "1px solid #282828",
+              backgroundColor: theme.buttonSecondaryBg,
+              color: theme.textPrimary,
+              border: `1px solid ${theme.border}`,
               borderRadius: "8px",
               fontSize: "14px",
               fontWeight: 600,
@@ -423,12 +425,12 @@ const ArticleCard = ({ article }) => {
               transition: "all 0.2s ease",
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = "#2a2a2a";
-              e.currentTarget.style.borderColor = "#ef4444";
+              e.currentTarget.style.backgroundColor = theme.buttonSecondaryBgHover;
+              e.currentTarget.style.borderColor = theme.accent;
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = "#242424";
-              e.currentTarget.style.borderColor = "#282828";
+              e.currentTarget.style.backgroundColor = theme.buttonSecondaryBg;
+              e.currentTarget.style.borderColor = theme.border;
             }}
           >
             <Sparkles size={16} />
@@ -443,6 +445,7 @@ const ArticleCard = ({ article }) => {
 // Article Row Component (list view)
 const ArticleRow = ({ article }) => {
   const [isHovered, setIsHovered] = useState(false);
+  const { theme } = useTheme();
 
   return (
     <div
@@ -451,9 +454,9 @@ const ArticleRow = ({ article }) => {
         alignItems: "center",
         gap: "16px",
         padding: "12px 16px",
-        backgroundColor: isHovered ? "#1a1a1a" : "transparent",
+        backgroundColor: isHovered ? theme.cardBg : "transparent",
         border: "1px solid",
-        borderColor: isHovered ? "#282828" : "transparent",
+        borderColor: isHovered ? theme.border : "transparent",
         borderRadius: "8px",
         transition: "all 0.15s ease",
         cursor: "default",
@@ -467,7 +470,7 @@ const ArticleRow = ({ article }) => {
           width: "120px",
           flexShrink: 0,
           fontSize: "11px",
-          color: "#ef4444",
+          color: theme.accent,
           fontWeight: 600,
           textTransform: "uppercase",
           overflow: "hidden",
@@ -484,7 +487,7 @@ const ArticleRow = ({ article }) => {
           flex: 1,
           fontSize: "14px",
           fontWeight: "bold",
-          color: "#ffffff",
+          color: theme.textPrimary,
           overflow: "hidden",
           textOverflow: "ellipsis",
           whiteSpace: "nowrap",
@@ -499,7 +502,7 @@ const ArticleRow = ({ article }) => {
           width: "90px",
           flexShrink: 0,
           fontSize: "12px",
-          color: "#6b7280",
+          color: theme.textMuted,
           textAlign: "right",
         }}
       >
@@ -515,7 +518,7 @@ const ArticleRow = ({ article }) => {
           onClick={() => article.url && window.open(article.url, "_blank")}
           style={{
             padding: "6px",
-            backgroundColor: "#ef4444",
+            backgroundColor: theme.accent,
             color: "#ffffff",
             border: "none",
             borderRadius: "6px",
@@ -524,8 +527,8 @@ const ArticleRow = ({ article }) => {
             alignItems: "center",
             justifyContent: "center",
           }}
-          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "#dc2626"; }}
-          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "#ef4444"; }}
+          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = theme.accentHover; }}
+          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = theme.accent; }}
         >
           <ExternalLink size={14} />
         </button>
@@ -533,17 +536,17 @@ const ArticleRow = ({ article }) => {
           title="AI Summary"
           style={{
             padding: "6px",
-            backgroundColor: "#242424",
-            color: "#b3b3b3",
-            border: "1px solid #282828",
+            backgroundColor: theme.buttonSecondaryBg,
+            color: theme.textSecondary,
+            border: `1px solid ${theme.border}`,
             borderRadius: "6px",
             cursor: "pointer",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
           }}
-          onMouseEnter={(e) => { e.currentTarget.style.borderColor = "#ef4444"; }}
-          onMouseLeave={(e) => { e.currentTarget.style.borderColor = "#282828"; }}
+          onMouseEnter={(e) => { e.currentTarget.style.borderColor = theme.accent; }}
+          onMouseLeave={(e) => { e.currentTarget.style.borderColor = theme.border; }}
         >
           <Sparkles size={14} />
         </button>

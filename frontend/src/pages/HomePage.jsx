@@ -1,7 +1,10 @@
 import React from "react";
 import SearchBar from "../components/common/SearchBar";
+import { useTheme } from "../context/ThemeContext";
 
 const HomePage = () => {
+  const { theme } = useTheme();
+
   const suggestions = [
     "Tesla earnings",
     "AI breakthroughs",
@@ -30,7 +33,7 @@ const HomePage = () => {
             fontSize: "48px",
             fontWeight: "bold",
             marginBottom: "16px",
-            color: "#ffffff",
+            color: theme.textPrimary,
             letterSpacing: "-0.02em",
           }}
         >
@@ -39,7 +42,7 @@ const HomePage = () => {
         <p
           style={{
             fontSize: "18px",
-            color: "#b3b3b3",
+            color: theme.textSecondary,
             marginBottom: "40px",
           }}
         >
@@ -62,7 +65,7 @@ const HomePage = () => {
           <p
             style={{
               fontSize: "14px",
-              color: "#6b7280",
+              color: theme.textMuted,
               marginBottom: "12px",
             }}
           >
@@ -85,23 +88,23 @@ const HomePage = () => {
                 }}
                 style={{
                   padding: "8px 16px",
-                  backgroundColor: "#1a1a1a",
-                  color: "#b3b3b3",
-                  border: "1px solid #282828",
+                  backgroundColor: theme.cardBg,
+                  color: theme.textSecondary,
+                  border: `1px solid ${theme.border}`,
                   borderRadius: "16px",
                   fontSize: "14px",
                   cursor: "pointer",
                   transition: "all 0.2s ease",
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "#242424";
-                  e.currentTarget.style.borderColor = "#ef4444";
-                  e.currentTarget.style.color = "#ffffff";
+                  e.currentTarget.style.backgroundColor = theme.cardBgHover;
+                  e.currentTarget.style.borderColor = theme.accent;
+                  e.currentTarget.style.color = theme.textPrimary;
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "#1a1a1a";
-                  e.currentTarget.style.borderColor = "#282828";
-                  e.currentTarget.style.color = "#b3b3b3";
+                  e.currentTarget.style.backgroundColor = theme.cardBg;
+                  e.currentTarget.style.borderColor = theme.border;
+                  e.currentTarget.style.color = theme.textSecondary;
                 }}
               >
                 {suggestion}
@@ -111,7 +114,7 @@ const HomePage = () => {
         </div>
       </div>
 
-      {/* Quick Actions (Optional) */}
+      {/* Quick Actions */}
       <div
         style={{
           marginTop: "64px",
@@ -124,18 +127,18 @@ const HomePage = () => {
         <div
           style={{
             padding: "32px",
-            backgroundColor: "#1a1a1a",
+            backgroundColor: theme.cardBg,
             borderRadius: "12px",
-            border: "1px solid #282828",
+            border: `1px solid ${theme.border}`,
             transition: "all 0.2s ease",
             cursor: "pointer",
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.borderColor = "#ef4444";
+            e.currentTarget.style.borderColor = theme.accent;
             e.currentTarget.style.transform = "translateY(-4px)";
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.borderColor = "#282828";
+            e.currentTarget.style.borderColor = theme.border;
             e.currentTarget.style.transform = "translateY(0)";
           }}
           onClick={() => (window.location.href = "/news")}
@@ -145,13 +148,13 @@ const HomePage = () => {
             style={{
               fontSize: "20px",
               fontWeight: "bold",
-              color: "#ffffff",
+              color: theme.textPrimary,
               marginBottom: "8px",
             }}
           >
             Browse News
           </h3>
-          <p style={{ fontSize: "14px", color: "#b3b3b3" }}>
+          <p style={{ fontSize: "14px", color: theme.textSecondary }}>
             Search and read the latest news with AI-powered summaries and
             fact-checking.
           </p>
@@ -161,18 +164,18 @@ const HomePage = () => {
         <div
           style={{
             padding: "32px",
-            backgroundColor: "#1a1a1a",
+            backgroundColor: theme.cardBg,
             borderRadius: "12px",
-            border: "1px solid #282828",
+            border: `1px solid ${theme.border}`,
             transition: "all 0.2s ease",
             cursor: "pointer",
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.borderColor = "#ef4444";
+            e.currentTarget.style.borderColor = theme.accent;
             e.currentTarget.style.transform = "translateY(-4px)";
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.borderColor = "#282828";
+            e.currentTarget.style.borderColor = theme.border;
             e.currentTarget.style.transform = "translateY(0)";
           }}
           onClick={() => (window.location.href = "/library")}
@@ -182,13 +185,13 @@ const HomePage = () => {
             style={{
               fontSize: "20px",
               fontWeight: "bold",
-              color: "#ffffff",
+              color: theme.textPrimary,
               marginBottom: "8px",
             }}
           >
             Your Library
           </h3>
-          <p style={{ fontSize: "14px", color: "#b3b3b3" }}>
+          <p style={{ fontSize: "14px", color: theme.textSecondary }}>
             Upload and chat with your documents using AI semantic search.
           </p>
         </div>

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { Send } from "lucide-react";
 import SlidePanel from "../common/SlidePanel";
 import { documentsAPI } from "../../services/api";
+import { useTheme } from "../../context/ThemeContext";
 
 // Chat panel for asking questions about a specific document (RAG).
 // Props:
@@ -12,6 +13,7 @@ const DocumentQAPanel = ({ document, onClose }) => {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const bottomRef = useRef(null);
+  const { theme } = useTheme();
 
   // Scroll to the latest message whenever messages change
   useEffect(() => {
@@ -74,7 +76,7 @@ const DocumentQAPanel = ({ document, onClose }) => {
         {messages.length === 0 && (
           <p
             style={{
-              color: "#6b7280",
+              color: theme.textMuted,
               fontSize: "14px",
               textAlign: "center",
               margin: "auto 0",
@@ -99,8 +101,8 @@ const DocumentQAPanel = ({ document, onClose }) => {
                 borderRadius: "12px",
                 fontSize: "14px",
                 lineHeight: "1.5",
-                backgroundColor: msg.role === "user" ? "#ef4444" : "#242424",
-                color: msg.role === "user" ? "#ffffff" : "#b3b3b3",
+                backgroundColor: msg.role === "user" ? theme.accent : theme.buttonSecondaryBg,
+                color: msg.role === "user" ? "#ffffff" : theme.textSecondary,
                 whiteSpace: "pre-wrap",
                 wordBreak: "break-word",
               }}
@@ -117,8 +119,8 @@ const DocumentQAPanel = ({ document, onClose }) => {
               style={{
                 padding: "10px 14px",
                 borderRadius: "12px",
-                backgroundColor: "#242424",
-                color: "#b3b3b3",
+                backgroundColor: theme.buttonSecondaryBg,
+                color: theme.textSecondary,
                 fontSize: "14px",
               }}
             >
@@ -135,7 +137,7 @@ const DocumentQAPanel = ({ document, onClose }) => {
       <div
         style={{
           padding: "16px 24px",
-          borderTop: "1px solid #282828",
+          borderTop: `1px solid ${theme.border}`,
           display: "flex",
           gap: "8px",
           flexShrink: 0,
@@ -151,22 +153,22 @@ const DocumentQAPanel = ({ document, onClose }) => {
           style={{
             flex: 1,
             padding: "10px 14px",
-            backgroundColor: "#121212",
-            border: "1px solid #282828",
+            backgroundColor: theme.deepInputBg,
+            border: `1px solid ${theme.border}`,
             borderRadius: "8px",
-            color: "#ffffff",
+            color: theme.textPrimary,
             fontSize: "14px",
             outline: "none",
           }}
-          onFocus={(e) => (e.currentTarget.style.borderColor = "#ef4444")}
-          onBlur={(e) => (e.currentTarget.style.borderColor = "#282828")}
+          onFocus={(e) => (e.currentTarget.style.borderColor = theme.accent)}
+          onBlur={(e) => (e.currentTarget.style.borderColor = theme.border)}
         />
         <button
           onClick={handleSend}
           disabled={loading || !input.trim()}
           style={{
             padding: "10px 14px",
-            backgroundColor: loading || !input.trim() ? "#3a3a3a" : "#ef4444",
+            backgroundColor: loading || !input.trim() ? theme.disabledBg : theme.accent,
             color: "#ffffff",
             border: "none",
             borderRadius: "8px",
@@ -177,10 +179,10 @@ const DocumentQAPanel = ({ document, onClose }) => {
             transition: "background-color 0.15s ease",
           }}
           onMouseEnter={(e) => {
-            if (!loading && input.trim()) e.currentTarget.style.backgroundColor = "#dc2626";
+            if (!loading && input.trim()) e.currentTarget.style.backgroundColor = theme.accentHover;
           }}
           onMouseLeave={(e) => {
-            if (!loading && input.trim()) e.currentTarget.style.backgroundColor = "#ef4444";
+            if (!loading && input.trim()) e.currentTarget.style.backgroundColor = theme.accent;
           }}
         >
           <Send size={16} />

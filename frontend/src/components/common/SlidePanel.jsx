@@ -1,5 +1,6 @@
 import React from "react";
 import { X } from "lucide-react";
+import { useTheme } from "../../context/ThemeContext";
 
 // Reusable slide-out panel that appears from the right side of the screen.
 // Props:
@@ -9,6 +10,8 @@ import { X } from "lucide-react";
 //   children — content rendered inside the panel body
 //   width    — panel width (default 480px)
 const SlidePanel = ({ isOpen, onClose, title, children, width = "480px" }) => {
+  const { theme } = useTheme();
+
   return (
     <>
       {/* Backdrop — clicking it closes the panel */}
@@ -33,13 +36,13 @@ const SlidePanel = ({ isOpen, onClose, title, children, width = "480px" }) => {
           right: 0,
           height: "100vh",
           width: width,
-          backgroundColor: "#1a1a1a",
+          backgroundColor: theme.cardBg,
           zIndex: 1000,
           display: "flex",
           flexDirection: "column",
           transform: isOpen ? "translateX(0)" : "translateX(100%)",
           transition: "transform 0.25s ease",
-          boxShadow: "-4px 0 24px rgba(0, 0, 0, 0.5)",
+          boxShadow: "-4px 0 24px rgba(0, 0, 0, 0.3)",
         }}
       >
         {/* Header */}
@@ -49,7 +52,7 @@ const SlidePanel = ({ isOpen, onClose, title, children, width = "480px" }) => {
             alignItems: "center",
             justifyContent: "space-between",
             padding: "20px 24px",
-            borderBottom: "1px solid #282828",
+            borderBottom: `1px solid ${theme.border}`,
             flexShrink: 0,
           }}
         >
@@ -57,7 +60,7 @@ const SlidePanel = ({ isOpen, onClose, title, children, width = "480px" }) => {
             style={{
               fontSize: "16px",
               fontWeight: 600,
-              color: "#ffffff",
+              color: theme.textPrimary,
               margin: 0,
               overflow: "hidden",
               textOverflow: "ellipsis",
@@ -73,15 +76,15 @@ const SlidePanel = ({ isOpen, onClose, title, children, width = "480px" }) => {
               background: "none",
               border: "none",
               cursor: "pointer",
-              color: "#b3b3b3",
+              color: theme.textSecondary,
               display: "flex",
               alignItems: "center",
               padding: "4px",
               borderRadius: "4px",
               flexShrink: 0,
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = "#ffffff")}
-            onMouseLeave={(e) => (e.currentTarget.style.color = "#b3b3b3")}
+            onMouseEnter={(e) => (e.currentTarget.style.color = theme.textPrimary)}
+            onMouseLeave={(e) => (e.currentTarget.style.color = theme.textSecondary)}
           >
             <X size={20} />
           </button>

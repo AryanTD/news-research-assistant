@@ -3,8 +3,11 @@ import { useNavigate } from "react-router-dom";
 import { Sparkles } from "lucide-react";
 import { documentsAPI } from "../services/api";
 import DocumentQAPanel from "../components/library/DocumentQAPanel";
+import { useTheme } from "../context/ThemeContext";
 
 const LibraryPage = () => {
+  const { theme } = useTheme();
+
   // STATE: What data does this page need to track?
   const [documents, setDocuments] = useState([]); // Array of documents
   const [loading, setLoading] = useState(true); // Are we loading?
@@ -186,18 +189,17 @@ const LibraryPage = () => {
           style={{
             fontSize: "32px",
             fontWeight: "bold",
-            color: "#ffffff",
+            color: theme.textPrimary,
             marginBottom: "8px",
           }}
         >
           Your Library
         </h1>
-        <p style={{ fontSize: "16px", color: "#b3b3b3" }}>
+        <p style={{ fontSize: "16px", color: theme.textSecondary }}>
           {documents.length} document{documents.length !== 1 ? "s" : ""}
         </p>
       </div>
 
-      {/* Upload Zone - We'll add this next */}
       {/* Upload Zone */}
       <div
         onDragEnter={handleDrag}
@@ -206,9 +208,9 @@ const LibraryPage = () => {
         onDrop={handleDrop}
         style={{
           padding: "48px",
-          backgroundColor: dragActive ? "#242424" : "#1a1a1a",
+          backgroundColor: dragActive ? theme.cardBgHover : theme.cardBg,
           borderRadius: "12px",
-          border: dragActive ? "2px dashed #ef4444" : "2px dashed #282828",
+          border: `2px dashed ${dragActive ? theme.accent : theme.border}`,
           textAlign: "center",
           marginBottom: "32px",
           transition: "all 0.2s ease",
@@ -232,8 +234,8 @@ const LibraryPage = () => {
               style={{
                 width: "64px",
                 height: "64px",
-                border: "4px solid #1a1a1a",
-                borderTop: "4px solid #ef4444",
+                border: `4px solid ${theme.cardBg}`,
+                borderTop: `4px solid ${theme.accent}`,
                 borderRadius: "50%",
                 animation: "spin 1s linear infinite",
                 margin: "0 auto 16px",
@@ -242,13 +244,13 @@ const LibraryPage = () => {
             <p
               style={{
                 fontSize: "18px",
-                color: "#ffffff",
+                color: theme.textPrimary,
                 marginBottom: "8px",
               }}
             >
               Uploading...
             </p>
-            <p style={{ fontSize: "14px", color: "#b3b3b3" }}>
+            <p style={{ fontSize: "14px", color: theme.textSecondary }}>
               Processing document and creating chunks
             </p>
           </>
@@ -261,7 +263,7 @@ const LibraryPage = () => {
             <p
               style={{
                 fontSize: "18px",
-                color: "#ffffff",
+                color: theme.textPrimary,
                 marginBottom: "8px",
               }}
             >
@@ -270,7 +272,7 @@ const LibraryPage = () => {
             <p
               style={{
                 fontSize: "14px",
-                color: "#b3b3b3",
+                color: theme.textSecondary,
                 marginBottom: "16px",
               }}
             >
@@ -279,7 +281,7 @@ const LibraryPage = () => {
             <button
               style={{
                 padding: "12px 24px",
-                backgroundColor: "#ef4444",
+                backgroundColor: theme.accent,
                 color: "#ffffff",
                 border: "none",
                 borderRadius: "8px",
@@ -289,10 +291,10 @@ const LibraryPage = () => {
                 transition: "all 0.2s ease",
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = "#dc2626";
+                e.currentTarget.style.backgroundColor = theme.accentHover;
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "#ef4444";
+                e.currentTarget.style.backgroundColor = theme.accent;
               }}
               onClick={(e) => {
                 e.stopPropagation();
@@ -302,7 +304,7 @@ const LibraryPage = () => {
               Choose File
             </button>
             <p
-              style={{ fontSize: "12px", color: "#6b7280", marginTop: "12px" }}
+              style={{ fontSize: "12px", color: theme.textMuted, marginTop: "12px" }}
             >
               Maximum file size: 10MB
             </p>
@@ -317,14 +319,14 @@ const LibraryPage = () => {
             style={{
               width: "48px",
               height: "48px",
-              border: "4px solid #1a1a1a",
-              borderTop: "4px solid #ef4444",
+              border: `4px solid ${theme.cardBg}`,
+              borderTop: `4px solid ${theme.accent}`,
               borderRadius: "50%",
               animation: "spin 1s linear infinite",
               margin: "0 auto 16px",
             }}
           />
-          <p style={{ color: "#b3b3b3" }}>Loading your documents...</p>
+          <p style={{ color: theme.textSecondary }}>Loading your documents...</p>
         </div>
       )}
 
@@ -333,13 +335,13 @@ const LibraryPage = () => {
         <div
           style={{
             padding: "24px",
-            backgroundColor: "#1a1a1a",
+            backgroundColor: theme.cardBg,
             borderRadius: "12px",
-            border: "1px solid #ef4444",
+            border: `1px solid ${theme.accent}`,
             textAlign: "center",
           }}
         >
-          <p style={{ color: "#ef4444" }}>❌ {error}</p>
+          <p style={{ color: theme.accent }}>❌ {error}</p>
         </div>
       )}
 
@@ -348,16 +350,16 @@ const LibraryPage = () => {
         <div>
           {/* Section header with Select toggle */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
-            <h2 style={{ fontSize: "20px", fontWeight: "bold", color: "#ffffff" }}>
+            <h2 style={{ fontSize: "20px", fontWeight: "bold", color: theme.textPrimary }}>
               Your Documents
             </h2>
             <button
               onClick={handleToggleSelectionMode}
               style={{
                 padding: "8px 16px",
-                backgroundColor: selectionMode ? "#3a3a3a" : "#242424",
-                color: selectionMode ? "#b3b3b3" : "#ffffff",
-                border: "1px solid #282828",
+                backgroundColor: selectionMode ? theme.cardBgHover : theme.buttonSecondaryBg,
+                color: selectionMode ? theme.textSecondary : theme.textPrimary,
+                border: `1px solid ${theme.border}`,
                 borderRadius: "8px",
                 fontSize: "13px",
                 cursor: "pointer",
@@ -374,19 +376,19 @@ const LibraryPage = () => {
               alignItems: "center",
               justifyContent: "space-between",
               padding: "12px 16px",
-              backgroundColor: "#1a1a1a",
-              border: "1px solid #282828",
+              backgroundColor: theme.cardBg,
+              border: `1px solid ${theme.border}`,
               borderRadius: "8px",
               marginBottom: "16px",
             }}>
-              <span style={{ fontSize: "14px", color: "#b3b3b3" }}>
+              <span style={{ fontSize: "14px", color: theme.textSecondary }}>
                 {selectedIds.size} selected
               </span>
               <button
                 onClick={handleBulkDelete}
                 style={{
                   padding: "8px 16px",
-                  backgroundColor: "#ef4444",
+                  backgroundColor: theme.accent,
                   color: "#ffffff",
                   border: "none",
                   borderRadius: "8px",
@@ -430,13 +432,13 @@ const LibraryPage = () => {
             style={{
               fontSize: "24px",
               fontWeight: "bold",
-              color: "#ffffff",
+              color: theme.textPrimary,
               marginBottom: "8px",
             }}
           >
             No documents yet
           </h2>
-          <p style={{ color: "#b3b3b3" }}>
+          <p style={{ color: theme.textSecondary }}>
             Upload your first document to get started
           </p>
         </div>
@@ -465,6 +467,7 @@ const LibraryPage = () => {
 const DocumentCard = ({ document, onDelete, onView, selectionMode, isSelected, onToggleSelect }) => {
   const [isHovered, setIsHovered] = useState(false);
   const navigate = useNavigate();
+  const { theme } = useTheme();
 
   // Helper: Format file size
   const formatFileSize = (bytes) => {
@@ -501,14 +504,13 @@ const DocumentCard = ({ document, onDelete, onView, selectionMode, isSelected, o
     <div
       onClick={selectionMode ? onToggleSelect : undefined}
       style={{
-        backgroundColor: "#1a1a1a",
+        backgroundColor: theme.cardBg,
         borderRadius: "12px",
         overflow: "hidden",
-        border: "1px solid #282828",
+        border: `1px solid ${isSelected ? theme.accent : isHovered ? theme.accent : theme.border}`,
         transition: "all 0.2s ease",
         transform: isHovered ? "translateY(-4px)" : "translateY(0)",
-        borderColor: isSelected ? "#ef4444" : isHovered ? "#ef4444" : "#282828",
-        cursor: selectionMode ? "pointer" : "pointer",
+        cursor: "pointer",
         position: "relative",
         opacity: selectionMode && !isSelected ? 0.7 : 1,
       }}
@@ -525,8 +527,8 @@ const DocumentCard = ({ document, onDelete, onView, selectionMode, isSelected, o
           width: "22px",
           height: "22px",
           borderRadius: "50%",
-          backgroundColor: isSelected ? "#ef4444" : "#242424",
-          border: `2px solid ${isSelected ? "#ef4444" : "#6b7280"}`,
+          backgroundColor: isSelected ? theme.accent : theme.buttonSecondaryBg,
+          border: `2px solid ${isSelected ? theme.accent : theme.textMuted}`,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -541,11 +543,11 @@ const DocumentCard = ({ document, onDelete, onView, selectionMode, isSelected, o
       <div
         style={{
           padding: "32px",
-          background: "linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%)",
+          background: `linear-gradient(135deg, ${theme.gradientFrom} 0%, ${theme.gradientTo} 100%)`,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          borderBottom: "1px solid #282828",
+          borderBottom: `1px solid ${theme.border}`,
         }}
       >
         <div style={{ fontSize: "64px" }}>{isPDF ? "📄" : "📝"}</div>
@@ -558,10 +560,10 @@ const DocumentCard = ({ document, onDelete, onView, selectionMode, isSelected, o
           <span
             style={{
               fontSize: "11px",
-              color: "#ef4444",
+              color: theme.accent,
               fontWeight: 600,
               textTransform: "uppercase",
-              backgroundColor: "rgba(239, 68, 68, 0.1)",
+              backgroundColor: theme.accentBg,
               padding: "4px 8px",
               borderRadius: "4px",
             }}
@@ -575,7 +577,7 @@ const DocumentCard = ({ document, onDelete, onView, selectionMode, isSelected, o
           style={{
             fontSize: "16px",
             fontWeight: "bold",
-            color: "#ffffff",
+            color: theme.textPrimary,
             marginBottom: "12px",
             wordBreak: "break-word",
             display: "-webkit-box",
@@ -599,7 +601,7 @@ const DocumentCard = ({ document, onDelete, onView, selectionMode, isSelected, o
           <div
             style={{
               fontSize: "13px",
-              color: "#b3b3b3",
+              color: theme.textSecondary,
               display: "flex",
               alignItems: "center",
               gap: "6px",
@@ -613,7 +615,7 @@ const DocumentCard = ({ document, onDelete, onView, selectionMode, isSelected, o
             <div
               style={{
                 fontSize: "13px",
-                color: "#b3b3b3",
+                color: theme.textSecondary,
                 display: "flex",
                 alignItems: "center",
                 gap: "6px",
@@ -628,7 +630,7 @@ const DocumentCard = ({ document, onDelete, onView, selectionMode, isSelected, o
             <div
               style={{
                 fontSize: "13px",
-                color: "#b3b3b3",
+                color: theme.textSecondary,
                 display: "flex",
                 alignItems: "center",
                 gap: "6px",
@@ -642,7 +644,7 @@ const DocumentCard = ({ document, onDelete, onView, selectionMode, isSelected, o
           <div
             style={{
               fontSize: "13px",
-              color: "#6b7280",
+              color: theme.textMuted,
               display: "flex",
               alignItems: "center",
               gap: "6px",
@@ -670,7 +672,7 @@ const DocumentCard = ({ document, onDelete, onView, selectionMode, isSelected, o
             style={{
               flex: 1,
               padding: "10px 16px",
-              backgroundColor: "#ef4444",
+              backgroundColor: theme.accent,
               color: "#ffffff",
               border: "none",
               borderRadius: "8px",
@@ -680,10 +682,10 @@ const DocumentCard = ({ document, onDelete, onView, selectionMode, isSelected, o
               transition: "all 0.2s ease",
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = "#dc2626";
+              e.currentTarget.style.backgroundColor = theme.accentHover;
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = "#ef4444";
+              e.currentTarget.style.backgroundColor = theme.accent;
             }}
           >
             View
@@ -697,9 +699,9 @@ const DocumentCard = ({ document, onDelete, onView, selectionMode, isSelected, o
             }}
             style={{
               padding: "10px 12px",
-              backgroundColor: "#242424",
-              color: "#ffffff",
-              border: "1px solid #282828",
+              backgroundColor: theme.buttonSecondaryBg,
+              color: theme.textPrimary,
+              border: `1px solid ${theme.border}`,
               borderRadius: "8px",
               fontSize: "14px",
               cursor: "pointer",
@@ -709,16 +711,16 @@ const DocumentCard = ({ document, onDelete, onView, selectionMode, isSelected, o
               transition: "all 0.2s ease",
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = "#2f2f2f";
-              e.currentTarget.style.borderColor = "#ef4444";
+              e.currentTarget.style.backgroundColor = theme.buttonSecondaryBgHover;
+              e.currentTarget.style.borderColor = theme.accent;
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = "#242424";
-              e.currentTarget.style.borderColor = "#282828";
+              e.currentTarget.style.backgroundColor = theme.buttonSecondaryBg;
+              e.currentTarget.style.borderColor = theme.border;
             }}
             title="Ask AI about this document"
           >
-            <Sparkles size={14} color="#ef4444" />
+            <Sparkles size={14} color={theme.accent} />
           </button>
 
           {/* Delete */}
@@ -731,9 +733,9 @@ const DocumentCard = ({ document, onDelete, onView, selectionMode, isSelected, o
             }}
             style={{
               padding: "10px 12px",
-              backgroundColor: "#242424",
-              color: "#ffffff",
-              border: "1px solid #282828",
+              backgroundColor: theme.buttonSecondaryBg,
+              color: theme.textPrimary,
+              border: `1px solid ${theme.border}`,
               borderRadius: "8px",
               fontSize: "14px",
               fontWeight: 600,
@@ -741,12 +743,12 @@ const DocumentCard = ({ document, onDelete, onView, selectionMode, isSelected, o
               transition: "all 0.2s ease",
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = "#dc2626";
-              e.currentTarget.style.borderColor = "#ef4444";
+              e.currentTarget.style.backgroundColor = theme.accent;
+              e.currentTarget.style.borderColor = theme.accent;
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = "#242424";
-              e.currentTarget.style.borderColor = "#282828";
+              e.currentTarget.style.backgroundColor = theme.buttonSecondaryBg;
+              e.currentTarget.style.borderColor = theme.border;
             }}
           >
             🗑️

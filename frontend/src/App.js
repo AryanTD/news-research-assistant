@@ -1,5 +1,6 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { ThemeProvider } from "./context/ThemeContext";
 import MainLayout from "./components/layout/MainLayout";
 import HomePage from "./pages/HomePage";
 import NewsPage from "./pages/NewsPage";
@@ -8,6 +9,7 @@ import DocumentReaderPage from "./pages/DocumentReaderPage";
 
 function App() {
   return (
+    <ThemeProvider>
     <Router>
       <MainLayout>
         <Routes>
@@ -28,6 +30,7 @@ function App() {
         </Routes>
       </MainLayout>
     </Router>
+    </ThemeProvider>
   );
 }
 

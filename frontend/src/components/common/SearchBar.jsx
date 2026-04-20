@@ -1,10 +1,12 @@
 import React, { useState } from "react";
 import { Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useTheme } from "../../context/ThemeContext";
 
 const SearchBar = ({ placeholder = "Search news, ask AI questions..." }) => {
   const [query, setQuery] = useState("");
   const navigate = useNavigate();
+  const { theme } = useTheme();
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -30,7 +32,7 @@ const SearchBar = ({ placeholder = "Search news, ask AI questions..." }) => {
           style={{
             position: "absolute",
             left: "20px",
-            color: "#6b7280",
+            color: theme.textMuted,
             pointerEvents: "none",
           }}
         />
@@ -47,19 +49,19 @@ const SearchBar = ({ placeholder = "Search news, ask AI questions..." }) => {
             paddingLeft: "60px",
             paddingRight: "20px",
             fontSize: "16px",
-            color: "#ffffff",
-            backgroundColor: "#242424",
+            color: theme.textPrimary,
+            backgroundColor: theme.inputBg,
             border: "2px solid transparent",
             borderRadius: "28px",
             outline: "none",
             transition: "all 0.2s ease",
           }}
           onFocus={(e) => {
-            e.target.style.backgroundColor = "#2a2a2a";
-            e.target.style.borderColor = "#ef4444";
+            e.target.style.backgroundColor = theme.inputBgFocus;
+            e.target.style.borderColor = theme.accent;
           }}
           onBlur={(e) => {
-            e.target.style.backgroundColor = "#242424";
+            e.target.style.backgroundColor = theme.inputBg;
             e.target.style.borderColor = "transparent";
           }}
         />
@@ -73,7 +75,7 @@ const SearchBar = ({ placeholder = "Search news, ask AI questions..." }) => {
               right: "8px",
               width: "40px",
               height: "40px",
-              backgroundColor: "#ef4444",
+              backgroundColor: theme.accent,
               border: "none",
               borderRadius: "20px",
               cursor: "pointer",
@@ -83,11 +85,11 @@ const SearchBar = ({ placeholder = "Search news, ask AI questions..." }) => {
               transition: "all 0.2s ease",
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = "#dc2626";
+              e.currentTarget.style.backgroundColor = theme.accentHover;
               e.currentTarget.style.transform = "scale(1.05)";
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = "#ef4444";
+              e.currentTarget.style.backgroundColor = theme.accent;
               e.currentTarget.style.transform = "scale(1)";
             }}
           >
